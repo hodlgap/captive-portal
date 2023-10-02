@@ -382,10 +382,13 @@ function auth_get() {
 
 		} else if ($_POST["auth_get"] == "view") {
 
+		    // * 혹은 none
 			if ($acklist != "none") {
+			    // 엔터로 split
 				$acklist_r=explode("\n",$acklist);
 
 				foreach ($acklist_r as $client) {
+				    // 앞에 별 자르고
 					$client=ltrim($client, "* ");
 
 					if ($client != "") {

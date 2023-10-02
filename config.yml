@@ -1,4 +1,0 @@
-app:
-  host: 127.0.0.1
-  port: 8080
-  graceful_timeout_second: 1
