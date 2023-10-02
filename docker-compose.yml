@@ -6,4 +6,4 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - /Users/henry/projects/captive-portal/serve/:/var/www/html/
+      - ./serve/:/var/www/html/
