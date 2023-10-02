@@ -1,0 +1,13 @@
+app:
+  name: "captive-portal"
+  env: "dev"
+  host: 127.0.0.1
+  port: 8080
+  graceful_timeout_second: 1
+  log_level: "debug"
+
+newrelic:
+  license_key: "value"
+
+openwrt:
+  encryption_key: "passkey"

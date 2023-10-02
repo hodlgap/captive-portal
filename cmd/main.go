@@ -3,20 +3,17 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/hodlgap/captive-portal/pkg"
+	"github.com/hodlgap/captive-portal/pkg/handler"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
-	"github.com/labstack/echo/v4/middleware"
-
-	"github.com/hodlgap/captive-portal/pkg/handler/captiveportal"
-
 	"github.com/pkg/errors"
 
 	"github.com/hodlgap/captive-portal/pkg/config"
 
-	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 )
 
@@ -27,23 +24,25 @@ const (
 func main() {
 	c, err := config.Parse(configFilepath)
 	if err != nil {
-		log.Fatal(errors.WithStack(err))
+		log.Fatalf("%+v", errors.WithStack(err))
 	}
 
-	// Setup
-	app := echo.New()
-	app.Logger.SetLevel(log.DEBUG)
-	app.Use(middleware.HTTPSRedirect())
-	app.Use(middleware.Logger())
-	app.Use(middleware.Recover())
+	nr, err := pkg.NewNewrelic(c)
+	if err != nil {
+		log.Fatalf("%+v", errors.WithStack(err))
+	}
 
-	app.GET("/captive-portal", captiveportal.NewHandler("1234567890abcdef1234567890abcdef"))
-	app.POST("/captive-portal", captiveportal.NewHandler("1234567890abcdef1234567890abcdef"))
+	app, err := pkg.NewApp(c, nr)
+	if err != nil {
+		log.Fatalf("%+v", errors.WithStack(err))
+	}
+
+	app = handler.SetRoute(c, app)
 
 	// Start server
 	go func() {
 		if err := app.Start(fmt.Sprintf("%s:%d", c.App.Host, c.App.Port)); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			app.Logger.Fatal("shutting down the server\n%+v", err)
+			app.Logger.Fatalf("shutting down the server\n%+v", err)
 		}
 	}()
 
@@ -54,6 +53,6 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(c.App.GracefulTimeoutSec)*time.Second)
 	defer cancel()
 	if err := app.Shutdown(ctx); err != nil {
-		app.Logger.Fatal(err)
+		app.Logger.Fatalf("%+v", err)
 	}
 }
