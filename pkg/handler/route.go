@@ -7,13 +7,16 @@ import (
 	"net/http"
 )
 
+const (
+	captivePortalURL = "/fas-aes-https.php"
+)
+
 func SetRoute(c config.Config, app *echo.Echo) *echo.Echo {
 	app.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!")
 	})
-
-	app.GET("/captive-portal", captiveportal.NewAuthHandler(c.Openwrt.EncryptionKey))
-	app.POST("/captive-portal", captiveportal.NewAuthGetHandler())
+	app.GET(captivePortalURL, captiveportal.NewAuthHandler(c.Openwrt.EncryptionKey))
+	app.POST(captivePortalURL, captiveportal.NewAuthGetHandler())
 
 	return app
 }

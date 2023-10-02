@@ -1,13 +1,14 @@
 package captiveportal
 
 import (
-	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"net/http"
-	"net/url"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 /* Send and/or clear the Auth List when requested by openNDS
@@ -46,12 +47,32 @@ type AuthGetRequest struct {
 	Payload     string `form:"payload"`
 }
 
-func hash(s string) string {
-	h := sha256.New()
-	h.Write([]byte(s))
-	bs := h.Sum(nil)
+func listAuthClients(gwhash string) (string, error) {
+	absBase := "/Users/henry/projects/captive-portal/authfiles"
+	absBase = filepath.Join(absBase, gwhash)
 
-	return url.QueryEscape(string(bs[:]))
+	dir, err := os.ReadDir(absBase)
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+
+	if len(dir) == 0 {
+		return "", nil
+	}
+
+	clients := " "
+	for _, entry := range dir {
+		clients += entry.Name()
+	}
+
+	return clients, nil
+}
+
+func delAuthClient(gwhash, rhid string) error {
+	absBase := "/Users/henry/projects/captive-portal/authfiles"
+	p := filepath.Join(absBase, gwhash, rhid)
+
+	return errors.WithStack(os.Remove(p))
 }
 
 func NewAuthGetHandler() echo.HandlerFunc {
@@ -68,6 +89,33 @@ func NewAuthGetHandler() echo.HandlerFunc {
 
 		r.Payload = string(decoded)
 
+		if r.AuthGet == "view" {
+			if r.Payload == "none" {
+				clients, err := listAuthClients(r.GatewayHash)
+				if err != nil {
+					return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", errors.WithStack(err)))
+				}
+
+				return c.String(http.StatusOK, "*"+clients)
+			} else {
+				for _, hid := range strings.Split(r.Payload, "\n") {
+					hid = strings.TrimLeft(hid, "* ")
+					if hid == "" {
+						continue
+					}
+					c.Logger().Infof("Received hid for %s", hid)
+
+					if err := delAuthClient(r.GatewayHash, hid); err != nil {
+						return err
+					}
+					c.Logger().Infof("Deleting %s", hid)
+				}
+
+				return c.String(http.StatusOK, "ack")
+			}
+		}
+
+		c.Logger().Errorf("unexpected request: %+v", r)
 		return c.JSON(http.StatusOK, r)
 	}
 }

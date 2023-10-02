@@ -398,7 +398,7 @@ function auth_get() {
 					}
 				}
 				echo "ack";
-			} else {
+			} else { // none
 				$auth_list=scandir("$logpath"."$gatewayhash");
 				array_shift($auth_list);
 				array_shift($auth_list);
