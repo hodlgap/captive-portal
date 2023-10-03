@@ -6,6 +6,7 @@ require (
 	github.com/go-redis/redismock/v9 v9.0.3
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/labstack/gommon v0.4.0
+	github.com/lib/pq v1.10.6
 	github.com/newrelic/go-agent/v3 v3.26.0
 	github.com/newrelic/go-agent/v3/integrations/nrecho-v4 v1.0.4
 	github.com/newrelic/go-agent/v3/integrations/nrredis-v9 v1.0.0

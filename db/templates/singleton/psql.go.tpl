@@ -3,6 +3,8 @@ import (
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
+
+    _ "github.com/lib/pq"
 )
 
 const (
@@ -11,7 +13,9 @@ const (
 )
 
 func MustGetDB(host, user, pass, dbName string, port int) *sql.DB {
-	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true", user, pass, host, port, dbName))
+	db, err := sql.Open("postgres", fmt.Sprintf(
+		"user=%s password=%s host=%s port=%d dbname=%s sslmode=disable", user, pass, host, port, dbName,
+	))
 	if err != nil {
 		panic(err)
 	}

@@ -46,6 +46,7 @@ type Config struct {
 	Newrelic `yaml:"newrelic"`
 	Openwrt  `yaml:"openwrt"`
 	Redis    `yaml:"redis"`
+	DB       `yaml:"db"`
 }
 
 // Parse yaml to go struct

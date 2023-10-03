@@ -16,6 +16,7 @@ import (
 	"github.com/hodlgap/captive-portal/pkg"
 	"github.com/hodlgap/captive-portal/pkg/config"
 	"github.com/hodlgap/captive-portal/pkg/handler"
+	"github.com/hodlgap/captive-portal/pkg/models"
 )
 
 const (
@@ -45,6 +46,11 @@ func main() {
 	}
 	redisCli := redis.NewClient(redisOpt)
 	redisCli.AddHook(nrredis.NewHook(redisOpt))
+
+	db := models.MustGetDB(c.DB.Host, c.DB.User, c.DB.Password, c.DB.Name, c.DB.Port)
+	if err := db.Ping(); err != nil {
+		log.Fatalf("%+v", errors.WithStack(err))
+	}
 
 	app = handler.SetRoute(c, app, redisCli)
 

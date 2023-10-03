@@ -21,5 +21,6 @@ redis:
 db:
   host: 127.0.0.1
   port: 5432
-  name: "captive_portal"
+  user: "postgres"
+  name: "captive-portal"
   password: "example"
