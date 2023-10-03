@@ -17,6 +17,7 @@ import (
 	"github.com/go-redis/redismock/v9"
 )
 
+// nolint:unused
 func mustAES256encode(plaintext, key, iv string) string {
 	block, err := aes.NewCipher([]byte(key))
 	if err != nil {
@@ -30,6 +31,7 @@ func mustAES256encode(plaintext, key, iv string) string {
 	return base64.StdEncoding.EncodeToString(cipherText)
 }
 
+// nolint:unused
 func toPlaintext(r DecodedAuthRequest) string {
 	return strings.Join([]string{
 		"authdir=" + r.AuthDir,

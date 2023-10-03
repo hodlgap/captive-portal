@@ -32,7 +32,6 @@ output = "pkg/models"
 [imports.singleton."boil_types"]
   standard = [
     '"strconv"',
-    '"regexp"',
   ]
 
   third_party = [
@@ -42,6 +41,10 @@ output = "pkg/models"
   ]
 
 [imports.singleton."boil_queries"]
+  standard = [
+    '"regexp"',
+  ]
+
   third_party = [
     '"github.com/volatiletech/sqlboiler/v4/drivers"',
     '"github.com/volatiletech/sqlboiler/v4/queries"',

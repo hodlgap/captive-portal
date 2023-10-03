@@ -23,7 +23,7 @@ import (
 
 // AuthAttemptLog is an object representing the database table.
 type AuthAttemptLog struct { // primary key
-	AuthAttemptLogID int `boil:"auth_attempt_log_id" json:"auth_attempt_log_id" toml:"auth_attempt_log_id" yaml:"auth_attempt_log_id"`
+	AuthAttemptLogID int64 `boil:"auth_attempt_log_id" json:"auth_attempt_log_id" toml:"auth_attempt_log_id" yaml:"auth_attempt_log_id"`
 	// client type. eg) cpi_url
 	AuthAttemptLogClientType string `boil:"auth_attempt_log_client_type" json:"auth_attempt_log_client_type" toml:"auth_attempt_log_client_type" yaml:"auth_attempt_log_client_type"`
 	// client network interface eg) br-lan
@@ -45,7 +45,7 @@ type AuthAttemptLog struct { // primary key
 	// opennds version in gateway auth request
 	AuthAttemptLogOpenndsVersion string `boil:"auth_attempt_log_opennds_version" json:"auth_attempt_log_opennds_version" toml:"auth_attempt_log_opennds_version" yaml:"auth_attempt_log_opennds_version"`
 	// gateway fk
-	AuthAttemptLogGatewayID int `boil:"auth_attempt_log_gateway_id" json:"auth_attempt_log_gateway_id" toml:"auth_attempt_log_gateway_id" yaml:"auth_attempt_log_gateway_id"`
+	AuthAttemptLogGatewayID int64 `boil:"auth_attempt_log_gateway_id" json:"auth_attempt_log_gateway_id" toml:"auth_attempt_log_gateway_id" yaml:"auth_attempt_log_gateway_id"`
 
 	R *authAttemptLogR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L authAttemptLogL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -110,7 +110,7 @@ var AuthAttemptLogTableColumns = struct {
 // Generated where
 
 var AuthAttemptLogWhere = struct {
-	AuthAttemptLogID                whereHelperint
+	AuthAttemptLogID                whereHelperint64
 	AuthAttemptLogClientType        whereHelperstring
 	AuthAttemptLogClientInterface   whereHelperstring
 	AuthAttemptLogClientIP          whereHelperstring
@@ -121,9 +121,9 @@ var AuthAttemptLogWhere = struct {
 	AuthAttemptLogOriginURL         whereHelperstring
 	AuthAttemptLogThemeSpecPath     whereHelperstring
 	AuthAttemptLogOpenndsVersion    whereHelperstring
-	AuthAttemptLogGatewayID         whereHelperint
+	AuthAttemptLogGatewayID         whereHelperint64
 }{
-	AuthAttemptLogID:                whereHelperint{field: "\"auth_attempt_log\".\"auth_attempt_log_id\""},
+	AuthAttemptLogID:                whereHelperint64{field: "\"auth_attempt_log\".\"auth_attempt_log_id\""},
 	AuthAttemptLogClientType:        whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_client_type\""},
 	AuthAttemptLogClientInterface:   whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_client_interface\""},
 	AuthAttemptLogClientIP:          whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_client_ip\""},
@@ -134,7 +134,7 @@ var AuthAttemptLogWhere = struct {
 	AuthAttemptLogOriginURL:         whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_origin_url\""},
 	AuthAttemptLogThemeSpecPath:     whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_theme_spec_path\""},
 	AuthAttemptLogOpenndsVersion:    whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_opennds_version\""},
-	AuthAttemptLogGatewayID:         whereHelperint{field: "\"auth_attempt_log\".\"auth_attempt_log_gateway_id\""},
+	AuthAttemptLogGatewayID:         whereHelperint64{field: "\"auth_attempt_log\".\"auth_attempt_log_gateway_id\""},
 }
 
 // AuthAttemptLogRels is where relationship names are stored.
@@ -641,7 +641,7 @@ func AuthAttemptLogs(mods ...qm.QueryMod) authAttemptLogQuery {
 
 // FindAuthAttemptLog retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindAuthAttemptLog(ctx context.Context, exec boil.ContextExecutor, authAttemptLogID int, selectCols ...string) (*AuthAttemptLog, error) {
+func FindAuthAttemptLog(ctx context.Context, exec boil.ContextExecutor, authAttemptLogID int64, selectCols ...string) (*AuthAttemptLog, error) {
 	authAttemptLogObj := &AuthAttemptLog{}
 
 	sel := "*"
@@ -1136,7 +1136,7 @@ func (o *AuthAttemptLogSlice) ReloadAll(ctx context.Context, exec boil.ContextEx
 }
 
 // AuthAttemptLogExists checks if the AuthAttemptLog row exists.
-func AuthAttemptLogExists(ctx context.Context, exec boil.ContextExecutor, authAttemptLogID int) (bool, error) {
+func AuthAttemptLogExists(ctx context.Context, exec boil.ContextExecutor, authAttemptLogID int64) (bool, error) {
 	var exists bool
 	sql := "select exists(select 1 from \"auth_attempt_log\" where \"auth_attempt_log_id\"=$1 limit 1)"
 

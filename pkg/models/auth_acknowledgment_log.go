@@ -23,7 +23,7 @@ import (
 
 // AuthAcknowledgmentLog is an object representing the database table.
 type AuthAcknowledgmentLog struct { // primary key
-	AuthAcknowledgmentLogID int `boil:"auth_acknowledgment_log_id" json:"auth_acknowledgment_log_id" toml:"auth_acknowledgment_log_id" yaml:"auth_acknowledgment_log_id"`
+	AuthAcknowledgmentLogID int64 `boil:"auth_acknowledgment_log_id" json:"auth_acknowledgment_log_id" toml:"auth_acknowledgment_log_id" yaml:"auth_acknowledgment_log_id"`
 	// gateway hash
 	AuthAcknowledgmentLogGatewayHash string `boil:"auth_acknowledgment_log_gateway_hash" json:"auth_acknowledgment_log_gateway_hash" toml:"auth_acknowledgment_log_gateway_hash" yaml:"auth_acknowledgment_log_gateway_hash"`
 	// raw payload string in gateway ack request
@@ -55,22 +55,22 @@ var AuthAcknowledgmentLogTableColumns = struct {
 
 // Generated where
 
-type whereHelperint struct{ field string }
+type whereHelperint64 struct{ field string }
 
-func (w whereHelperint) EQ(x int) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
-func (w whereHelperint) NEQ(x int) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
-func (w whereHelperint) LT(x int) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
-func (w whereHelperint) LTE(x int) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
-func (w whereHelperint) GT(x int) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
-func (w whereHelperint) GTE(x int) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
-func (w whereHelperint) IN(slice []int) qm.QueryMod {
+func (w whereHelperint64) EQ(x int64) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
+func (w whereHelperint64) NEQ(x int64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
+func (w whereHelperint64) LT(x int64) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
+func (w whereHelperint64) LTE(x int64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
+func (w whereHelperint64) GT(x int64) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
+func (w whereHelperint64) GTE(x int64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
+func (w whereHelperint64) IN(slice []int64) qm.QueryMod {
 	values := make([]interface{}, 0, len(slice))
 	for _, value := range slice {
 		values = append(values, value)
 	}
 	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
 }
-func (w whereHelperint) NIN(slice []int) qm.QueryMod {
+func (w whereHelperint64) NIN(slice []int64) qm.QueryMod {
 	values := make([]interface{}, 0, len(slice))
 	for _, value := range slice {
 		values = append(values, value)
@@ -106,11 +106,11 @@ func (w whereHelperstring) NIN(slice []string) qm.QueryMod {
 }
 
 var AuthAcknowledgmentLogWhere = struct {
-	AuthAcknowledgmentLogID          whereHelperint
+	AuthAcknowledgmentLogID          whereHelperint64
 	AuthAcknowledgmentLogGatewayHash whereHelperstring
 	AuthAcknowledgmentLogRawPayload  whereHelperstring
 }{
-	AuthAcknowledgmentLogID:          whereHelperint{field: "\"auth_acknowledgment_log\".\"auth_acknowledgment_log_id\""},
+	AuthAcknowledgmentLogID:          whereHelperint64{field: "\"auth_acknowledgment_log\".\"auth_acknowledgment_log_id\""},
 	AuthAcknowledgmentLogGatewayHash: whereHelperstring{field: "\"auth_acknowledgment_log\".\"auth_acknowledgment_log_gateway_hash\""},
 	AuthAcknowledgmentLogRawPayload:  whereHelperstring{field: "\"auth_acknowledgment_log\".\"auth_acknowledgment_log_raw_payload\""},
 }
@@ -430,7 +430,7 @@ func AuthAcknowledgmentLogs(mods ...qm.QueryMod) authAcknowledgmentLogQuery {
 
 // FindAuthAcknowledgmentLog retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindAuthAcknowledgmentLog(ctx context.Context, exec boil.ContextExecutor, authAcknowledgmentLogID int, selectCols ...string) (*AuthAcknowledgmentLog, error) {
+func FindAuthAcknowledgmentLog(ctx context.Context, exec boil.ContextExecutor, authAcknowledgmentLogID int64, selectCols ...string) (*AuthAcknowledgmentLog, error) {
 	authAcknowledgmentLogObj := &AuthAcknowledgmentLog{}
 
 	sel := "*"
@@ -925,7 +925,7 @@ func (o *AuthAcknowledgmentLogSlice) ReloadAll(ctx context.Context, exec boil.Co
 }
 
 // AuthAcknowledgmentLogExists checks if the AuthAcknowledgmentLog row exists.
-func AuthAcknowledgmentLogExists(ctx context.Context, exec boil.ContextExecutor, authAcknowledgmentLogID int) (bool, error) {
+func AuthAcknowledgmentLogExists(ctx context.Context, exec boil.ContextExecutor, authAcknowledgmentLogID int64) (bool, error) {
 	var exists bool
 	sql := "select exists(select 1 from \"auth_acknowledgment_log\" where \"auth_acknowledgment_log_id\"=$1 limit 1)"
 

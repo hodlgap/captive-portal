@@ -4,8 +4,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -47,43 +45,6 @@ type AuthGetRequest struct {
 	AuthGet     string `form:"auth_get"`
 	GatewayHash string `form:"gatewayhash"`
 	Payload     string `form:"payload"`
-}
-
-func listAuthClients(gwhash string) (string, error) {
-	absBase := "/Users/henry/projects/captive-portal/authfiles"
-	absBase = filepath.Join(absBase, gwhash)
-
-	dir, err := os.ReadDir(absBase)
-	if err != nil {
-		return "", errors.WithStack(err)
-	}
-
-	if len(dir) == 0 {
-		return "", nil
-	}
-
-	clients := make([]string, 0, len(dir))
-	for _, entry := range dir {
-		if entry.IsDir() {
-			continue
-		}
-
-		body, err := os.ReadFile(filepath.Join(absBase, entry.Name()))
-		if err != nil {
-			return "", errors.WithStack(err)
-		}
-
-		clients = append(clients, strings.Trim(string(body), ""))
-	}
-
-	return " " + strings.Join(clients, " "), nil
-}
-
-func delAuthClient(gwhash, rhid string) error {
-	absBase := "/Users/henry/projects/captive-portal/authfiles"
-	p := filepath.Join(absBase, gwhash, rhid)
-
-	return errors.WithStack(os.Remove(p))
 }
 
 const (

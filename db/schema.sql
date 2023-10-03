@@ -25,7 +25,7 @@ SET default_table_access_method = heap;
 --
 
 CREATE TABLE public.auth_acknowledgment_log (
-    auth_acknowledgment_log_id integer NOT NULL,
+    auth_acknowledgment_log_id bigint NOT NULL,
     auth_acknowledgment_log_gateway_hash character varying(64) NOT NULL,
     auth_acknowledgment_log_raw_payload text NOT NULL,
     auth_acknowledgment_log_created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -80,7 +80,7 @@ COMMENT ON COLUMN public.auth_acknowledgment_log.auth_acknowledgment_log_updated
 --
 
 CREATE TABLE public.auth_attempt_log (
-    auth_attempt_log_id integer NOT NULL,
+    auth_attempt_log_id bigint NOT NULL,
     auth_attempt_log_client_type character varying(30) NOT NULL,
     auth_attempt_log_client_interface character varying(20) NOT NULL,
     auth_attempt_log_client_ip character varying(45) NOT NULL,
@@ -91,7 +91,7 @@ CREATE TABLE public.auth_attempt_log (
     auth_attempt_log_origin_url text NOT NULL,
     auth_attempt_log_theme_spec_path text NOT NULL,
     auth_attempt_log_opennds_version character varying(20) NOT NULL,
-    auth_attempt_log_gateway_id integer NOT NULL,
+    auth_attempt_log_gateway_id bigint NOT NULL,
     auth_attempt_log_created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     auth_attempt_log_updated_at timestamp without time zone
 );
