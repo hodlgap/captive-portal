@@ -3,11 +3,23 @@ app:
   env: "dev"
   host: 127.0.0.1
   port: 8080
-  graceful_timeout_second: 1
+  graceful_timeout_second: 0.1
   log_level: "debug"
 
 newrelic:
-  license_key: "value"
+  license_key: "example"
 
 openwrt:
-  encryption_key: "passkey"
+  encryption_key: "example"
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  db: 0
+  password: ""
+
+db:
+  host: 127.0.0.1
+  port: 5432
+  name: "captive_portal"
+  password: "example"

@@ -30,12 +30,3 @@ func (l LogLevel) ToLevel() log.Lvl {
 		return log.INFO
 	}
 }
-
-type App struct {
-	Name               string `yaml:"name"`
-	Host               string `yaml:"host"`
-	Port               int    `yaml:"port"`
-	ENV                `yaml:"env"`
-	GracefulTimeoutSec int `yaml:"graceful_timeout_second"`
-	LogLevel           `yaml:"log_level"`
-}

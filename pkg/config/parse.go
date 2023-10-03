@@ -24,6 +24,23 @@ type Redis struct {
 	DB       int    `yaml:"db"`
 }
 
+type DB struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	Name     string `yaml:"name"`
+}
+
+type App struct {
+	Name               string `yaml:"name"`
+	Host               string `yaml:"host"`
+	Port               int    `yaml:"port"`
+	ENV                `yaml:"env"`
+	GracefulTimeoutSec int `yaml:"graceful_timeout_second"`
+	LogLevel           `yaml:"log_level"`
+}
+
 type Config struct {
 	App      `yaml:"app"`
 	Newrelic `yaml:"newrelic"`
