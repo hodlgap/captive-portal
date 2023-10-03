@@ -10,10 +10,6 @@ run:
   # Default: 1m
   timeout: 3m
 
-  # Exit code when at least one issue was found.
-  # Default: 1
-  issues-exit-code: 2
-
   # Include test files or not.
   # Default: true
   tests: true
@@ -26,11 +22,6 @@ run:
   # "/" will be replaced by current OS file path separator to properly work on Windows.
   skip-dirs:
     - pkg/models
-
-  # Enables skipping of directories:
-  # - vendor$, third_party$, testdata$, examples$, Godeps$, builtin$
-  # Default: true
-  skip-dirs-use-default: true
 
   # If set we pass it to "go list -mod={option}". From "go help modules":
   # If invoked with -mod=readonly, the go command is disallowed from the implicit

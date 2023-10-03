@@ -5,7 +5,6 @@ import (
 	"crypto/cipher"
 	"encoding/base64"
 	"fmt"
-	"github.com/hodlgap/captive-portal/pkg/auth"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -15,6 +14,8 @@ import (
 	echo "github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/hodlgap/captive-portal/pkg/auth"
 )
 
 // nolint:unused
