@@ -52,7 +52,7 @@ func main() {
 		log.Fatalf("%+v", errors.WithStack(err))
 	}
 
-	app = handler.SetRoute(c, app, redisCli)
+	app = handler.SetRoute(c, app, redisCli, db)
 
 	// Start server
 	go func() {

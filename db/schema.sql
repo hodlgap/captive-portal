@@ -16,6 +16,48 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+--
+-- Name: update_auth_acknowledgment_log_updated_at(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.update_auth_acknowledgment_log_updated_at() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    NEW.auth_acknowledgment_log_updated_at = now();
+    RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: update_auth_attempt_log_updated_at(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.update_auth_attempt_log_updated_at() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    NEW.auth_attempt_log_updated_at = now();
+    RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: update_gateway_updated_at(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.update_gateway_updated_at() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    NEW.gateway_updated_at = now();
+    RETURN NEW;
+END;
+$$;
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -26,7 +68,7 @@ SET default_table_access_method = heap;
 
 CREATE TABLE public.auth_acknowledgment_log (
     auth_acknowledgment_log_id bigint NOT NULL,
-    auth_acknowledgment_log_gateway_hash character varying(64) NOT NULL,
+    auth_acknowledgment_log_gateway_name_hash character varying(64) NOT NULL,
     auth_acknowledgment_log_raw_payload text NOT NULL,
     auth_acknowledgment_log_created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     auth_acknowledgment_log_updated_at timestamp without time zone
@@ -48,10 +90,10 @@ COMMENT ON COLUMN public.auth_acknowledgment_log.auth_acknowledgment_log_id IS '
 
 
 --
--- Name: COLUMN auth_acknowledgment_log.auth_acknowledgment_log_gateway_hash; Type: COMMENT; Schema: public; Owner: -
+-- Name: COLUMN auth_acknowledgment_log.auth_acknowledgment_log_gateway_name_hash; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON COLUMN public.auth_acknowledgment_log.auth_acknowledgment_log_gateway_hash IS 'gateway hash';
+COMMENT ON COLUMN public.auth_acknowledgment_log.auth_acknowledgment_log_gateway_name_hash IS 'gateway name hash';
 
 
 --
@@ -91,7 +133,6 @@ CREATE TABLE public.auth_attempt_log (
     auth_attempt_log_origin_url text NOT NULL,
     auth_attempt_log_theme_spec_path text NOT NULL,
     auth_attempt_log_opennds_version character varying(20) NOT NULL,
-    auth_attempt_log_gateway_id bigint NOT NULL,
     auth_attempt_log_created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     auth_attempt_log_updated_at timestamp without time zone
 );
@@ -179,13 +220,6 @@ COMMENT ON COLUMN public.auth_attempt_log.auth_attempt_log_theme_spec_path IS 't
 --
 
 COMMENT ON COLUMN public.auth_attempt_log.auth_attempt_log_opennds_version IS 'opennds version in gateway auth request';
-
-
---
--- Name: COLUMN auth_attempt_log.auth_attempt_log_gateway_id; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.auth_attempt_log.auth_attempt_log_gateway_id IS 'gateway fk';
 
 
 --
@@ -290,14 +324,6 @@ ALTER TABLE ONLY public.auth_attempt_log
 
 
 --
--- Name: auth_attempt_log auth_attempt_log_pk2; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.auth_attempt_log
-    ADD CONSTRAINT auth_attempt_log_pk2 UNIQUE (auth_attempt_log_gateway_id, auth_attempt_log_client_hash_id);
-
-
---
 -- Name: gateway gateway_pk; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -311,13 +337,6 @@ ALTER TABLE ONLY public.gateway
 
 ALTER TABLE ONLY public.gateway
     ADD CONSTRAINT gateway_pk2 UNIQUE (gateway_mac_address);
-
-
---
--- Name: aal_auth_acknowledgment_log_gateway_hash_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX aal_auth_acknowledgment_log_gateway_hash_index ON public.auth_acknowledgment_log USING btree (auth_acknowledgment_log_gateway_hash);
 
 
 --
@@ -335,11 +354,31 @@ CREATE INDEX auth_attempt_log_auth_attempt_log_client_mac_address_index ON publi
 
 
 --
--- Name: auth_attempt_log auth_attempt_log_gateway_gateway_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: gateway_gateway_name_hash_uindex; Type: INDEX; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.auth_attempt_log
-    ADD CONSTRAINT auth_attempt_log_gateway_gateway_id_fk FOREIGN KEY (auth_attempt_log_gateway_id) REFERENCES public.gateway(gateway_id);
+CREATE UNIQUE INDEX gateway_gateway_name_hash_uindex ON public.gateway USING btree (gateway_name_hash);
+
+
+--
+-- Name: auth_acknowledgment_log update_auth_acknowledgment_log_updated_at_trigger; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_auth_acknowledgment_log_updated_at_trigger BEFORE UPDATE ON public.auth_acknowledgment_log FOR EACH ROW EXECUTE FUNCTION public.update_auth_acknowledgment_log_updated_at();
+
+
+--
+-- Name: auth_attempt_log update_auth_attempt_log_updated_at_trigger; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_auth_attempt_log_updated_at_trigger BEFORE UPDATE ON public.auth_attempt_log FOR EACH ROW EXECUTE FUNCTION public.update_auth_attempt_log_updated_at();
+
+
+--
+-- Name: gateway update_gateway_updated_at_trigger; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_gateway_updated_at_trigger BEFORE UPDATE ON public.gateway FOR EACH ROW EXECUTE FUNCTION public.update_gateway_updated_at();
 
 
 --

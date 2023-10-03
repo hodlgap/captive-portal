@@ -4,6 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -96,7 +97,7 @@ const (
 	AuthHandlerURL = "/fas-aes-https.php"
 )
 
-func NewAuthHandler(encryptionKey string, rCli *redis.Client) echo.HandlerFunc {
+func NewAuthHandler(encryptionKey string, rCli *redis.Client, db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		dr := new(DecodedAuthRequest)
 		if err := dr.FromEchoContext(c, encryptionKey); err != nil {
