@@ -3,13 +3,14 @@ package captiveportal
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/labstack/echo/v4"
-	"github.com/pkg/errors"
-	"github.com/redis/go-redis/v9"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/labstack/echo/v4"
+	"github.com/pkg/errors"
+	"github.com/redis/go-redis/v9"
 )
 
 /* Send and/or clear the Auth List when requested by openNDS

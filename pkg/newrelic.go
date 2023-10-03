@@ -1,9 +1,10 @@
 package pkg
 
 import (
-	"github.com/hodlgap/captive-portal/pkg/config"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/pkg/errors"
+
+	"github.com/hodlgap/captive-portal/pkg/config"
 )
 
 func NewNewrelic(c config.Config) (*newrelic.Application, error) {

@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/hodlgap/captive-portal/pkg"
-	"github.com/hodlgap/captive-portal/pkg/handler"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/hodlgap/captive-portal/pkg"
+	"github.com/hodlgap/captive-portal/pkg/handler"
 
 	"github.com/pkg/errors"
 

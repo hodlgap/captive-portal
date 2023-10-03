@@ -1,8 +1,9 @@
 package config
 
 import (
-	"github.com/labstack/gommon/log"
 	"strings"
+
+	"github.com/labstack/gommon/log"
 )
 
 type ENV string

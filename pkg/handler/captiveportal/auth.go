@@ -8,10 +8,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/redis/go-redis/v9"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/redis/go-redis/v9"
 
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"

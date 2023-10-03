@@ -1,0 +1,49 @@
+no-auto-timestamps = true
+no-tests = true
+wipe     = true
+output = "pkg/models"
+
+[psql]
+  dbname = "captive-portal"
+  host = "127.0.0.1"
+  port = 5432
+  user = "postgres"
+  pass = "example"
+  sslmode = "disable"
+  blacklist = [
+    "gateway.gateway_created_at",
+    "gateway.gateway_updated_at",
+    "auth_attempt_log.auth_attempt_log_created_at",
+    "auth_attempt_log.auth_attempt_log_updated_at",
+    "auth_acknowledgment_log.auth_acknowledgment_log_created_at",
+    "auth_acknowledgment_log.auth_acknowledgment_log_updated_at",
+  ]
+
+[imports.all]
+  third_party = [
+    '"github.com/pkg/errors"',
+    '"github.com/volatiletech/sqlboiler/v4/boil"',
+    '"github.com/volatiletech/sqlboiler/v4/queries"',
+    '"github.com/volatiletech/sqlboiler/v4/queries/qm"',
+    '"github.com/volatiletech/sqlboiler/v4/queries/qmhelper"',
+    '"github.com/volatiletech/strmangle"',
+  ]
+
+[imports.singleton."boil_types"]
+  standard = [
+    '"strconv"',
+    '"regexp"',
+  ]
+
+  third_party = [
+    '"github.com/pkg/errors"',
+    '"github.com/volatiletech/sqlboiler/v4/boil"',
+    '"github.com/volatiletech/strmangle"',
+  ]
+
+[imports.singleton."boil_queries"]
+  third_party = [
+    '"github.com/volatiletech/sqlboiler/v4/drivers"',
+    '"github.com/volatiletech/sqlboiler/v4/queries"',
+    '"github.com/volatiletech/sqlboiler/v4/queries/qm"',
+  ]

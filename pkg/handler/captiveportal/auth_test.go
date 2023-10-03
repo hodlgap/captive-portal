@@ -5,13 +5,14 @@ import (
 	"crypto/cipher"
 	"encoding/base64"
 	"fmt"
-	"github.com/labstack/echo/v4"
-	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/labstack/echo/v4"
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/go-redis/redismock/v9"
 )
