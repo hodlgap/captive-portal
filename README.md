@@ -6,22 +6,22 @@ Purchase a cup of coffee to get access to the internet.
 ## Quick Start
 Start dependencies
 ```bash
-$ docker-compose up -d
+docker-compose up -d
 ```
 
 Run the application
 ```bash
-$ go run main.go
+go run main.go
 ```
 
 ## Formatting
 Format code
 ```bash
-$ make format
+make format
 ```
 Check formatting
 ```bash
-$ make lint
+make lint
 ```
 
 ## DB schema modifications
@@ -29,14 +29,14 @@ If you want to modify the database schema, you should modify the schema file dir
 
 And then generate models from the database
 ```bash
-$ make models
+make models
 ```
 After you finished, dump the database schema
 ```bash
-$ make dump-db
+make dump-db
 ```
 
 ### Restore database
 ```bash
-$ make restore-db
+make restore-db
 ```
