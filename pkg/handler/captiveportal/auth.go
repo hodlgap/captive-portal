@@ -8,10 +8,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/redis/go-redis/v9"
 	"net/http"
 	"net/url"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -93,25 +92,29 @@ func hash(s string) string {
 	return hex.EncodeToString(bs[:])
 }
 
-func NewAuthHandler(encryptionKey string) echo.HandlerFunc {
+const (
+	AuthHandlerURL = "/fas-aes-https.php"
+)
+
+func NewAuthHandler(encryptionKey string, rCli *redis.Client) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		dr := DecodedAuthRequest{}
+		dr := new(DecodedAuthRequest)
 		if err := dr.FromEchoContext(c, encryptionKey); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", err))
 		}
 
 		rhid := hash(strings.Trim(dr.HID, "") + strings.Trim(encryptionKey, ""))
-		c.Logger().Infof("Calculated rhid: %s", rhid)
 
-		sessionlength := 1001
-		uploadrate := 1002
-		downloadrate := 1003
-		uploadquota := 1004
-		downloadquota := 1005
+		sessionlength := 1001 // 1001 minutes
+		uploadrate := 1002    // Upload Rate Limit Threshold: 1002 Kb/s
+		downloadrate := 1003  // Download Rate Limit Threshold: 1003 Kb/s
+		uploadquota := 1004   // Upload Quota: 1004 KBytes
+		downloadquota := 1005 // Download Quota: 1005 KBytes
 		custom := "key=value, key2=value2"
 		custom = base64.StdEncoding.EncodeToString([]byte(custom))
 
-		returnStr := fmt.Sprintf("%s %d %d %d %d %d %s",
+		returnStr := fmt.Sprintf(
+			"%s %d %d %d %d %d %s",
 			rhid,
 			sessionlength,
 			uploadrate,
@@ -125,28 +128,14 @@ func NewAuthHandler(encryptionKey string) echo.HandlerFunc {
 		returnStr = url.QueryEscape(returnStr)
 		returnStr = strings.ReplaceAll(returnStr, "+", "%20")
 
-		hashed := hash(dr.GatewayName)
+		gwHash := hash(dr.GatewayName)
 
-		c.Set(hashed, returnStr)
-		c.Logger().Infof("Set %s to %s", hashed, returnStr)
-
-		absBase := "/Users/henry/projects/captive-portal/authfiles"
-		path := fmt.Sprintf("%s/%s", hashed, rhid)
-		if err := os.Mkdir(filepath.Join(absBase, hashed), 0755); err != nil {
-			c.Logger().Errorf("Failed to create directory: %+v", errors.WithStack(err))
-		}
-		f, err := os.Create(filepath.Join(absBase, path))
-		if err != nil {
+		if err := rCli.LPush(c.Request().Context(), gwHash, rhid).Err(); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", err))
 		}
-		defer func(f *os.File) {
-			if err := f.Close(); err != nil {
-				c.Logger().Errorf("Failed to close file: %+v", errors.WithStack(err))
-			}
-		}(f)
-
-		if _, err := f.WriteString(returnStr); err != nil {
-			c.Logger().Errorf("Failed to write file: %+v", errors.WithStack(err))
+		key := fmt.Sprintf("%s/%s", gwHash, rhid)
+		if err := rCli.Set(c.Request().Context(), key, returnStr, 0).Err(); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", err))
 		}
 
 		return c.JSON(200, dr)

@@ -15,6 +15,7 @@ import (
 	"github.com/hodlgap/captive-portal/pkg/config"
 
 	"github.com/labstack/gommon/log"
+	"github.com/redis/go-redis/v9"
 )
 
 const (
@@ -37,7 +38,13 @@ func main() {
 		log.Fatalf("%+v", errors.WithStack(err))
 	}
 
-	app = handler.SetRoute(c, app)
+	redisCli := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", c.Redis.Host, c.Redis.Port),
+		Password: c.Redis.Password, // no password set
+		DB:       c.Redis.DB,       // use default DB
+	})
+
+	app = handler.SetRoute(c, app, redisCli)
 
 	// Start server
 	go func() {

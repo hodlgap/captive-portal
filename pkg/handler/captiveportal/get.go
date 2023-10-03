@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
+	"github.com/redis/go-redis/v9"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -60,12 +61,21 @@ func listAuthClients(gwhash string) (string, error) {
 		return "", nil
 	}
 
-	clients := " "
+	clients := make([]string, 0, len(dir))
 	for _, entry := range dir {
-		clients += entry.Name()
+		if entry.IsDir() {
+			continue
+		}
+
+		body, err := os.ReadFile(filepath.Join(absBase, entry.Name()))
+		if err != nil {
+			return "", errors.WithStack(err)
+		}
+
+		clients = append(clients, strings.Trim(string(body), ""))
 	}
 
-	return clients, nil
+	return " " + strings.Join(clients, " "), nil
 }
 
 func delAuthClient(gwhash, rhid string) error {
@@ -75,7 +85,11 @@ func delAuthClient(gwhash, rhid string) error {
 	return errors.WithStack(os.Remove(p))
 }
 
-func NewAuthGetHandler() echo.HandlerFunc {
+const (
+	AuthGetHandlerURL = "/fas-aes-https.php"
+)
+
+func NewAuthGetHandler(rCli *redis.Client) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var r AuthGetRequest
 		if err := c.Bind(&r); err != nil {
@@ -91,27 +105,61 @@ func NewAuthGetHandler() echo.HandlerFunc {
 
 		if r.AuthGet == "view" {
 			if r.Payload == "none" {
-				clients, err := listAuthClients(r.GatewayHash)
+				// Listing all auth clients
+				rhids, err := rCli.LRange(c.Request().Context(), r.GatewayHash, 0, -1).Result()
 				if err != nil {
 					return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", errors.WithStack(err)))
 				}
 
-				return c.String(http.StatusOK, "*"+clients)
+				if err := rCli.Del(c.Request().Context(), r.GatewayHash).Err(); err != nil {
+					return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", errors.WithStack(err)))
+				}
+
+				clients := make([]string, len(rhids))
+				for i, rhid := range rhids {
+					result, err := rCli.Get(c.Request().Context(), fmt.Sprintf("%s/%s", r.GatewayHash, rhid)).Result()
+					if err != nil {
+						return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", errors.WithStack(err)))
+					}
+
+					clients[i] = strings.Trim(result, "")
+				}
+
+				base := "*"
+				if len(clients) > 0 {
+					base += " "
+				}
+
+				return c.String(http.StatusOK, base+strings.Join(clients, "\n"))
 			} else {
 				for _, hid := range strings.Split(r.Payload, "\n") {
 					hid = strings.TrimLeft(hid, "* ")
 					if hid == "" {
 						continue
 					}
-					c.Logger().Infof("Received hid for %s", hid)
 
-					if err := delAuthClient(r.GatewayHash, hid); err != nil {
-						return err
+					// Use GetDel for ensuring the client is in the auth list
+					if err := rCli.GetDel(c.Request().Context(), fmt.Sprintf("%s/%s", r.GatewayHash, hid)).Err(); err != nil {
+						return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", errors.WithStack(err)))
 					}
-					c.Logger().Infof("Deleting %s", hid)
 				}
 
 				return c.String(http.StatusOK, "ack")
+			}
+		} else if r.AuthGet == "clear" {
+			rhids, err := rCli.LRange(c.Request().Context(), r.GatewayHash, 0, -1).Result()
+			if err != nil {
+				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", errors.WithStack(err)))
+			}
+
+			if err := rCli.Del(c.Request().Context(), r.GatewayHash).Err(); err != nil {
+				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", errors.WithStack(err)))
+			}
+
+			for _, rhid := range rhids {
+				if err := rCli.Del(c.Request().Context(), fmt.Sprintf("%s/%s", r.GatewayHash, rhid)).Err(); err != nil {
+					return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", errors.WithStack(err)))
+				}
 			}
 		}
 

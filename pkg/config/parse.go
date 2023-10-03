@@ -13,10 +13,22 @@ type Openwrt struct {
 	EncryptionKey string `yaml:"encryption_key"`
 }
 
+type Newrelic struct {
+	LicenseKey string `yaml:"license_key"`
+}
+
+type Redis struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	Password string `yaml:"password"`
+	DB       int    `yaml:"db"`
+}
+
 type Config struct {
 	App      `yaml:"app"`
 	Newrelic `yaml:"newrelic"`
 	Openwrt  `yaml:"openwrt"`
+	Redis    `yaml:"redis"`
 }
 
 // Parse yaml to go struct
