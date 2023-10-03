@@ -24,8 +24,8 @@ import (
 // AuthAcknowledgmentLog is an object representing the database table.
 type AuthAcknowledgmentLog struct { // primary key
 	AuthAcknowledgmentLogID int64 `boil:"auth_acknowledgment_log_id" json:"auth_acknowledgment_log_id" toml:"auth_acknowledgment_log_id" yaml:"auth_acknowledgment_log_id"`
-	// gateway hash
-	AuthAcknowledgmentLogGatewayHash string `boil:"auth_acknowledgment_log_gateway_hash" json:"auth_acknowledgment_log_gateway_hash" toml:"auth_acknowledgment_log_gateway_hash" yaml:"auth_acknowledgment_log_gateway_hash"`
+	// gateway name hash
+	AuthAcknowledgmentLogGatewayNameHash string `boil:"auth_acknowledgment_log_gateway_name_hash" json:"auth_acknowledgment_log_gateway_name_hash" toml:"auth_acknowledgment_log_gateway_name_hash" yaml:"auth_acknowledgment_log_gateway_name_hash"`
 	// raw payload string in gateway ack request
 	AuthAcknowledgmentLogRawPayload string `boil:"auth_acknowledgment_log_raw_payload" json:"auth_acknowledgment_log_raw_payload" toml:"auth_acknowledgment_log_raw_payload" yaml:"auth_acknowledgment_log_raw_payload"`
 
@@ -34,23 +34,23 @@ type AuthAcknowledgmentLog struct { // primary key
 }
 
 var AuthAcknowledgmentLogColumns = struct {
-	AuthAcknowledgmentLogID          string
-	AuthAcknowledgmentLogGatewayHash string
-	AuthAcknowledgmentLogRawPayload  string
+	AuthAcknowledgmentLogID              string
+	AuthAcknowledgmentLogGatewayNameHash string
+	AuthAcknowledgmentLogRawPayload      string
 }{
-	AuthAcknowledgmentLogID:          "auth_acknowledgment_log_id",
-	AuthAcknowledgmentLogGatewayHash: "auth_acknowledgment_log_gateway_hash",
-	AuthAcknowledgmentLogRawPayload:  "auth_acknowledgment_log_raw_payload",
+	AuthAcknowledgmentLogID:              "auth_acknowledgment_log_id",
+	AuthAcknowledgmentLogGatewayNameHash: "auth_acknowledgment_log_gateway_name_hash",
+	AuthAcknowledgmentLogRawPayload:      "auth_acknowledgment_log_raw_payload",
 }
 
 var AuthAcknowledgmentLogTableColumns = struct {
-	AuthAcknowledgmentLogID          string
-	AuthAcknowledgmentLogGatewayHash string
-	AuthAcknowledgmentLogRawPayload  string
+	AuthAcknowledgmentLogID              string
+	AuthAcknowledgmentLogGatewayNameHash string
+	AuthAcknowledgmentLogRawPayload      string
 }{
-	AuthAcknowledgmentLogID:          "auth_acknowledgment_log.auth_acknowledgment_log_id",
-	AuthAcknowledgmentLogGatewayHash: "auth_acknowledgment_log.auth_acknowledgment_log_gateway_hash",
-	AuthAcknowledgmentLogRawPayload:  "auth_acknowledgment_log.auth_acknowledgment_log_raw_payload",
+	AuthAcknowledgmentLogID:              "auth_acknowledgment_log.auth_acknowledgment_log_id",
+	AuthAcknowledgmentLogGatewayNameHash: "auth_acknowledgment_log.auth_acknowledgment_log_gateway_name_hash",
+	AuthAcknowledgmentLogRawPayload:      "auth_acknowledgment_log.auth_acknowledgment_log_raw_payload",
 }
 
 // Generated where
@@ -106,13 +106,13 @@ func (w whereHelperstring) NIN(slice []string) qm.QueryMod {
 }
 
 var AuthAcknowledgmentLogWhere = struct {
-	AuthAcknowledgmentLogID          whereHelperint64
-	AuthAcknowledgmentLogGatewayHash whereHelperstring
-	AuthAcknowledgmentLogRawPayload  whereHelperstring
+	AuthAcknowledgmentLogID              whereHelperint64
+	AuthAcknowledgmentLogGatewayNameHash whereHelperstring
+	AuthAcknowledgmentLogRawPayload      whereHelperstring
 }{
-	AuthAcknowledgmentLogID:          whereHelperint64{field: "\"auth_acknowledgment_log\".\"auth_acknowledgment_log_id\""},
-	AuthAcknowledgmentLogGatewayHash: whereHelperstring{field: "\"auth_acknowledgment_log\".\"auth_acknowledgment_log_gateway_hash\""},
-	AuthAcknowledgmentLogRawPayload:  whereHelperstring{field: "\"auth_acknowledgment_log\".\"auth_acknowledgment_log_raw_payload\""},
+	AuthAcknowledgmentLogID:              whereHelperint64{field: "\"auth_acknowledgment_log\".\"auth_acknowledgment_log_id\""},
+	AuthAcknowledgmentLogGatewayNameHash: whereHelperstring{field: "\"auth_acknowledgment_log\".\"auth_acknowledgment_log_gateway_name_hash\""},
+	AuthAcknowledgmentLogRawPayload:      whereHelperstring{field: "\"auth_acknowledgment_log\".\"auth_acknowledgment_log_raw_payload\""},
 }
 
 // AuthAcknowledgmentLogRels is where relationship names are stored.
@@ -132,8 +132,8 @@ func (*authAcknowledgmentLogR) NewStruct() *authAcknowledgmentLogR {
 type authAcknowledgmentLogL struct{}
 
 var (
-	authAcknowledgmentLogAllColumns            = []string{"auth_acknowledgment_log_id", "auth_acknowledgment_log_gateway_hash", "auth_acknowledgment_log_raw_payload"}
-	authAcknowledgmentLogColumnsWithoutDefault = []string{"auth_acknowledgment_log_id", "auth_acknowledgment_log_gateway_hash", "auth_acknowledgment_log_raw_payload"}
+	authAcknowledgmentLogAllColumns            = []string{"auth_acknowledgment_log_id", "auth_acknowledgment_log_gateway_name_hash", "auth_acknowledgment_log_raw_payload"}
+	authAcknowledgmentLogColumnsWithoutDefault = []string{"auth_acknowledgment_log_id", "auth_acknowledgment_log_gateway_name_hash", "auth_acknowledgment_log_raw_payload"}
 	authAcknowledgmentLogColumnsWithDefault    = []string{}
 	authAcknowledgmentLogPrimaryKeyColumns     = []string{"auth_acknowledgment_log_id"}
 	authAcknowledgmentLogGeneratedColumns      = []string{}
@@ -973,14 +973,14 @@ func BulkInsertAuthAcknowledgmentLog(unsavedRows []*AuthAcknowledgmentLog, exec 
 		for _, authAcknowledgmentLog := range authAcknowledgmentLogs {
 			valueStrings = append(valueStrings, "(?,?)")
 
-			valueArgs = append(valueArgs, authAcknowledgmentLog.AuthAcknowledgmentLogGatewayHash)
+			valueArgs = append(valueArgs, authAcknowledgmentLog.AuthAcknowledgmentLogGatewayNameHash)
 			valueArgs = append(valueArgs, authAcknowledgmentLog.AuthAcknowledgmentLogRawPayload)
 		}
 		stmt := fmt.Sprintf(
 			"INSERT INTO "+
 				TableNames.AuthAcknowledgmentLog+
 				"("+
-				AuthAcknowledgmentLogColumns.AuthAcknowledgmentLogGatewayHash+", "+
+				AuthAcknowledgmentLogColumns.AuthAcknowledgmentLogGatewayNameHash+", "+
 				AuthAcknowledgmentLogColumns.AuthAcknowledgmentLogRawPayload+
 				") VALUES %s",
 			strings.Join(valueStrings, ","))

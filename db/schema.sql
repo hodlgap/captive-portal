@@ -134,7 +134,14 @@ CREATE TABLE public.auth_attempt_log (
     auth_attempt_log_theme_spec_path text NOT NULL,
     auth_attempt_log_opennds_version character varying(20) NOT NULL,
     auth_attempt_log_created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    auth_attempt_log_updated_at timestamp without time zone
+    auth_attempt_log_updated_at timestamp without time zone,
+    auth_attempt_log_rhid text NOT NULL,
+    auth_attempt_log_session_length_minutes bigint NOT NULL,
+    auth_attempt_log_upload_rate_threshold bigint NOT NULL,
+    auth_attempt_log_download_rate_threshold bigint NOT NULL,
+    auth_attempt_log_upload_quota bigint NOT NULL,
+    auth_attempt_log_download_quota bigint NOT NULL,
+    auth_attempt_log_custom_value json
 );
 
 
@@ -234,6 +241,55 @@ COMMENT ON COLUMN public.auth_attempt_log.auth_attempt_log_created_at IS 'create
 --
 
 COMMENT ON COLUMN public.auth_attempt_log.auth_attempt_log_updated_at IS 'updated timestamp';
+
+
+--
+-- Name: COLUMN auth_attempt_log.auth_attempt_log_rhid; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.auth_attempt_log.auth_attempt_log_rhid IS 'hashed client hid with gateway password';
+
+
+--
+-- Name: COLUMN auth_attempt_log.auth_attempt_log_session_length_minutes; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.auth_attempt_log.auth_attempt_log_session_length_minutes IS 'session length minutes';
+
+
+--
+-- Name: COLUMN auth_attempt_log.auth_attempt_log_upload_rate_threshold; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.auth_attempt_log.auth_attempt_log_upload_rate_threshold IS 'upload rate threshold (KB/s)';
+
+
+--
+-- Name: COLUMN auth_attempt_log.auth_attempt_log_download_rate_threshold; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.auth_attempt_log.auth_attempt_log_download_rate_threshold IS 'download rate threshold (KB/s)';
+
+
+--
+-- Name: COLUMN auth_attempt_log.auth_attempt_log_upload_quota; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.auth_attempt_log.auth_attempt_log_upload_quota IS 'upload quota (KB)';
+
+
+--
+-- Name: COLUMN auth_attempt_log.auth_attempt_log_download_quota; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.auth_attempt_log.auth_attempt_log_download_quota IS 'download quota (KB)';
+
+
+--
+-- Name: COLUMN auth_attempt_log.auth_attempt_log_custom_value; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.auth_attempt_log.auth_attempt_log_custom_value IS 'json serialized custom tags';
 
 
 --

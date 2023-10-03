@@ -83,26 +83,15 @@ var GatewayWhere = struct {
 
 // GatewayRels is where relationship names are stored.
 var GatewayRels = struct {
-	AuthAttemptLogGatewayAuthAttemptLogs string
-}{
-	AuthAttemptLogGatewayAuthAttemptLogs: "AuthAttemptLogGatewayAuthAttemptLogs",
-}
+}{}
 
 // gatewayR is where relationships are stored.
 type gatewayR struct {
-	AuthAttemptLogGatewayAuthAttemptLogs AuthAttemptLogSlice `boil:"AuthAttemptLogGatewayAuthAttemptLogs" json:"AuthAttemptLogGatewayAuthAttemptLogs" toml:"AuthAttemptLogGatewayAuthAttemptLogs" yaml:"AuthAttemptLogGatewayAuthAttemptLogs"`
 }
 
 // NewStruct creates a new relationship struct
 func (*gatewayR) NewStruct() *gatewayR {
 	return &gatewayR{}
-}
-
-func (r *gatewayR) GetAuthAttemptLogGatewayAuthAttemptLogs() AuthAttemptLogSlice {
-	if r == nil {
-		return nil
-	}
-	return r.AuthAttemptLogGatewayAuthAttemptLogs
 }
 
 // gatewayL is where Load methods for each relationship are stored.
@@ -392,187 +381,6 @@ func (q gatewayQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bo
 	}
 
 	return count > 0, nil
-}
-
-// AuthAttemptLogGatewayAuthAttemptLogs retrieves all the auth_attempt_log's AuthAttemptLogs with an executor via auth_attempt_log_gateway_id column.
-func (o *Gateway) AuthAttemptLogGatewayAuthAttemptLogs(mods ...qm.QueryMod) authAttemptLogQuery {
-	var queryMods []qm.QueryMod
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"auth_attempt_log\".\"auth_attempt_log_gateway_id\"=?", o.GatewayID),
-	)
-
-	return AuthAttemptLogs(queryMods...)
-}
-
-// LoadAuthAttemptLogGatewayAuthAttemptLogs allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (gatewayL) LoadAuthAttemptLogGatewayAuthAttemptLogs(ctx context.Context, e boil.ContextExecutor, singular bool, maybeGateway interface{}, mods queries.Applicator) error {
-	var slice []*Gateway
-	var object *Gateway
-
-	if singular {
-		var ok bool
-		object, ok = maybeGateway.(*Gateway)
-		if !ok {
-			object = new(Gateway)
-			ok = queries.SetFromEmbeddedStruct(&object, &maybeGateway)
-			if !ok {
-				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeGateway))
-			}
-		}
-	} else {
-		s, ok := maybeGateway.(*[]*Gateway)
-		if ok {
-			slice = *s
-		} else {
-			ok = queries.SetFromEmbeddedStruct(&slice, maybeGateway)
-			if !ok {
-				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeGateway))
-			}
-		}
-	}
-
-	args := make([]interface{}, 0, 1)
-	if singular {
-		if object.R == nil {
-			object.R = &gatewayR{}
-		}
-		args = append(args, object.GatewayID)
-	} else {
-	Outer:
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &gatewayR{}
-			}
-
-			for _, a := range args {
-				if a == obj.GatewayID {
-					continue Outer
-				}
-			}
-
-			args = append(args, obj.GatewayID)
-		}
-	}
-
-	if len(args) == 0 {
-		return nil
-	}
-
-	query := NewQuery(
-		qm.From(`auth_attempt_log`),
-		qm.WhereIn(`auth_attempt_log.auth_attempt_log_gateway_id in ?`, args...),
-	)
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load auth_attempt_log")
-	}
-
-	var resultSlice []*AuthAttemptLog
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice auth_attempt_log")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on auth_attempt_log")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for auth_attempt_log")
-	}
-
-	if len(authAttemptLogAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
-				return err
-			}
-		}
-	}
-	if singular {
-		object.R.AuthAttemptLogGatewayAuthAttemptLogs = resultSlice
-		for _, foreign := range resultSlice {
-			if foreign.R == nil {
-				foreign.R = &authAttemptLogR{}
-			}
-			foreign.R.AuthAttemptLogGateway = object
-		}
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.GatewayID == foreign.AuthAttemptLogGatewayID {
-				local.R.AuthAttemptLogGatewayAuthAttemptLogs = append(local.R.AuthAttemptLogGatewayAuthAttemptLogs, foreign)
-				if foreign.R == nil {
-					foreign.R = &authAttemptLogR{}
-				}
-				foreign.R.AuthAttemptLogGateway = local
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// AddAuthAttemptLogGatewayAuthAttemptLogs adds the given related objects to the existing relationships
-// of the gateway, optionally inserting them as new records.
-// Appends related to o.R.AuthAttemptLogGatewayAuthAttemptLogs.
-// Sets related.R.AuthAttemptLogGateway appropriately.
-func (o *Gateway) AddAuthAttemptLogGatewayAuthAttemptLogs(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*AuthAttemptLog) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.AuthAttemptLogGatewayID = o.GatewayID
-			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"auth_attempt_log\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"auth_attempt_log_gateway_id"}),
-				strmangle.WhereClause("\"", "\"", 2, authAttemptLogPrimaryKeyColumns),
-			)
-			values := []interface{}{o.GatewayID, rel.AuthAttemptLogID}
-
-			if boil.IsDebug(ctx) {
-				writer := boil.DebugWriterFrom(ctx)
-				fmt.Fprintln(writer, updateQuery)
-				fmt.Fprintln(writer, values)
-			}
-			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.AuthAttemptLogGatewayID = o.GatewayID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &gatewayR{
-			AuthAttemptLogGatewayAuthAttemptLogs: related,
-		}
-	} else {
-		o.R.AuthAttemptLogGatewayAuthAttemptLogs = append(o.R.AuthAttemptLogGatewayAuthAttemptLogs, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &authAttemptLogR{
-				AuthAttemptLogGateway: o,
-			}
-		} else {
-			rel.R.AuthAttemptLogGateway = o
-		}
-	}
-	return nil
 }
 
 // Gateways retrieves all the records using an executor.

@@ -1,6 +1,7 @@
 package captiveportal
 
 import (
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha256"
@@ -9,13 +10,18 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/hodlgap/captive-portal/pkg/auth"
+	"github.com/hodlgap/captive-portal/pkg/models"
+	"github.com/labstack/gommon/log"
+	"github.com/volatiletech/null/v8"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	echo "github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
-	redis "github.com/redis/go-redis/v9"
 )
 
 type RawAuthRequest struct {
@@ -39,6 +45,16 @@ type DecodedAuthRequest struct {
 	Version         string `json:"version"`
 }
 
+// MustGetAuthorizedPath returns the path that client redirects after authentication
+func (dr *DecodedAuthRequest) MustGetAuthorizedPath() string {
+	path, err := url.JoinPath(dr.GatewayURL, dr.AuthDir)
+	if err != nil {
+		log.Errorf("%+v", errors.Wrapf(err, "failed to join path. gatewayURL: %s, authDir: %s", dr.GatewayURL, dr.AuthDir))
+		return dr.GatewayURL
+	}
+	return path
+}
+
 func (dr *DecodedAuthRequest) FromEchoContext(c echo.Context, key string) error {
 	r := new(RawAuthRequest)
 	if err := c.Bind(r); err != nil {
@@ -57,7 +73,13 @@ func (dr *DecodedAuthRequest) FromEchoContext(c echo.Context, key string) error 
 		if len(parts) != 2 {
 			continue
 		}
-		res[parts[0]] = parts[1]
+
+		unescaped, err := url.QueryUnescape(parts[1])
+		if err != nil {
+			unescaped = parts[1]
+		}
+
+		res[parts[0]] = unescaped
 	}
 
 	data, err := json.Marshal(res)
@@ -97,7 +119,7 @@ const (
 	AuthHandlerURL = "/fas-aes-https.php"
 )
 
-func NewAuthHandler(encryptionKey string, rCli *redis.Client, db *sql.DB) echo.HandlerFunc {
+func NewAuthHandler(encryptionKey string, authProvider auth.Provider, db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		dr := new(DecodedAuthRequest)
 		if err := dr.FromEchoContext(c, encryptionKey); err != nil {
@@ -106,39 +128,66 @@ func NewAuthHandler(encryptionKey string, rCli *redis.Client, db *sql.DB) echo.H
 
 		rhid := hash(strings.Trim(dr.HID, "") + strings.Trim(encryptionKey, ""))
 
-		sessionlength := 1001 // 1001 minutes
-		uploadrate := 1002    // Upload Rate Limit Threshold: 1002 Kb/s
-		downloadrate := 1003  // Download Rate Limit Threshold: 1003 Kb/s
-		uploadquota := 1004   // Upload Quota: 1004 KBytes
-		downloadquota := 1005 // Download Quota: 1005 KBytes
-		custom := "key=value, key2=value2"
-		custom = base64.StdEncoding.EncodeToString([]byte(custom))
-
-		returnStr := fmt.Sprintf(
-			"%s %d %d %d %d %d %s",
+		p := auth.NewClientPolicy(
 			rhid,
-			sessionlength,
-			uploadrate,
-			downloadrate,
-			uploadquota,
-			downloadquota,
-			custom,
+			10,
+			5000,
+			5000,
+			5000,
+			5000,
+			map[string]any{
+				"now": time.Now().UTC().Format(time.RFC3339),
+			},
 		)
 
-		// url encode
-		returnStr = url.QueryEscape(returnStr)
-		returnStr = strings.ReplaceAll(returnStr, "+", "%20")
-
-		gwHash := hash(dr.GatewayName)
-
-		if err := rCli.LPush(c.Request().Context(), gwHash, rhid).Err(); err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", err))
-		}
-		key := fmt.Sprintf("%s/%s", gwHash, rhid)
-		if err := rCli.Set(c.Request().Context(), key, returnStr, 0).Err(); err != nil {
+		if err := authProvider.AddClient(c.Request().Context(), dr.GatewayName, rhid, p); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", err))
 		}
 
-		return c.JSON(200, dr)
+		if err := insertAuthAttemptLog(c.Request().Context(), db, *dr, *p); err != nil {
+			c.Logger().Errorf("%+v", errors.WithStack(err))
+		}
+
+		return c.Redirect(http.StatusFound, dr.MustGetAuthorizedPath())
 	}
+}
+
+func insertAuthAttemptLog(ctx context.Context, db *sql.DB, dr DecodedAuthRequest, p auth.ClientPolicy) error {
+	attemptLog, err := newAuthAttemptLog(dr, p)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	if err := attemptLog.Insert(ctx, db, boil.Infer()); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
+}
+
+func newAuthAttemptLog(dr DecodedAuthRequest, p auth.ClientPolicy) (*models.AuthAttemptLog, error) {
+	serialized, err := json.Marshal(p.Custom)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return &models.AuthAttemptLog{
+		AuthAttemptLogClientType:            dr.ClientType,
+		AuthAttemptLogClientInterface:       dr.ClientInterface,
+		AuthAttemptLogClientIP:              dr.ClientIP,
+		AuthAttemptLogClientMacAddress:      dr.ClientMAC,
+		AuthAttemptLogClientGatewayName:     dr.GatewayName,
+		AuthAttemptLogClientURL:             dr.GatewayURL,
+		AuthAttemptLogClientHashID:          dr.HID,
+		AuthAttemptLogOriginURL:             dr.OriginURL,
+		AuthAttemptLogThemeSpecPath:         dr.ThemeSpec,
+		AuthAttemptLogOpenndsVersion:        dr.Version,
+		AuthAttemptLogRhid:                  p.ClientRHID,
+		AuthAttemptLogSessionLengthMinutes:  int64(p.SessionDuration.Minutes()),
+		AuthAttemptLogUploadRateThreshold:   p.UploadRateThresholdKBs,
+		AuthAttemptLogDownloadRateThreshold: p.DownloadRateThresholdKBs,
+		AuthAttemptLogUploadQuota:           p.UploadQuotaKB,
+		AuthAttemptLogDownloadQuota:         p.DownloadQuotaKB,
+		AuthAttemptLogCustomValue:           null.JSONFrom(serialized),
+	}, nil
 }

@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -44,109 +45,177 @@ type AuthAttemptLog struct { // primary key
 	AuthAttemptLogThemeSpecPath string `boil:"auth_attempt_log_theme_spec_path" json:"auth_attempt_log_theme_spec_path" toml:"auth_attempt_log_theme_spec_path" yaml:"auth_attempt_log_theme_spec_path"`
 	// opennds version in gateway auth request
 	AuthAttemptLogOpenndsVersion string `boil:"auth_attempt_log_opennds_version" json:"auth_attempt_log_opennds_version" toml:"auth_attempt_log_opennds_version" yaml:"auth_attempt_log_opennds_version"`
-	// gateway fk
-	AuthAttemptLogGatewayID int64 `boil:"auth_attempt_log_gateway_id" json:"auth_attempt_log_gateway_id" toml:"auth_attempt_log_gateway_id" yaml:"auth_attempt_log_gateway_id"`
+	// hashed client hid with gateway password
+	AuthAttemptLogRhid string `boil:"auth_attempt_log_rhid" json:"auth_attempt_log_rhid" toml:"auth_attempt_log_rhid" yaml:"auth_attempt_log_rhid"`
+	// session length minutes
+	AuthAttemptLogSessionLengthMinutes int64 `boil:"auth_attempt_log_session_length_minutes" json:"auth_attempt_log_session_length_minutes" toml:"auth_attempt_log_session_length_minutes" yaml:"auth_attempt_log_session_length_minutes"`
+	// upload rate threshold (KB/s)
+	AuthAttemptLogUploadRateThreshold int64 `boil:"auth_attempt_log_upload_rate_threshold" json:"auth_attempt_log_upload_rate_threshold" toml:"auth_attempt_log_upload_rate_threshold" yaml:"auth_attempt_log_upload_rate_threshold"`
+	// download rate threshold (KB/s)
+	AuthAttemptLogDownloadRateThreshold int64 `boil:"auth_attempt_log_download_rate_threshold" json:"auth_attempt_log_download_rate_threshold" toml:"auth_attempt_log_download_rate_threshold" yaml:"auth_attempt_log_download_rate_threshold"`
+	// upload quota (KB)
+	AuthAttemptLogUploadQuota int64 `boil:"auth_attempt_log_upload_quota" json:"auth_attempt_log_upload_quota" toml:"auth_attempt_log_upload_quota" yaml:"auth_attempt_log_upload_quota"`
+	// download quota (KB)
+	AuthAttemptLogDownloadQuota int64 `boil:"auth_attempt_log_download_quota" json:"auth_attempt_log_download_quota" toml:"auth_attempt_log_download_quota" yaml:"auth_attempt_log_download_quota"`
+	// json serialized custom tags
+	AuthAttemptLogCustomValue null.JSON `boil:"auth_attempt_log_custom_value" json:"auth_attempt_log_custom_value,omitempty" toml:"auth_attempt_log_custom_value" yaml:"auth_attempt_log_custom_value,omitempty"`
 
 	R *authAttemptLogR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L authAttemptLogL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var AuthAttemptLogColumns = struct {
-	AuthAttemptLogID                string
-	AuthAttemptLogClientType        string
-	AuthAttemptLogClientInterface   string
-	AuthAttemptLogClientIP          string
-	AuthAttemptLogClientMacAddress  string
-	AuthAttemptLogClientGatewayName string
-	AuthAttemptLogClientURL         string
-	AuthAttemptLogClientHashID      string
-	AuthAttemptLogOriginURL         string
-	AuthAttemptLogThemeSpecPath     string
-	AuthAttemptLogOpenndsVersion    string
-	AuthAttemptLogGatewayID         string
+	AuthAttemptLogID                    string
+	AuthAttemptLogClientType            string
+	AuthAttemptLogClientInterface       string
+	AuthAttemptLogClientIP              string
+	AuthAttemptLogClientMacAddress      string
+	AuthAttemptLogClientGatewayName     string
+	AuthAttemptLogClientURL             string
+	AuthAttemptLogClientHashID          string
+	AuthAttemptLogOriginURL             string
+	AuthAttemptLogThemeSpecPath         string
+	AuthAttemptLogOpenndsVersion        string
+	AuthAttemptLogRhid                  string
+	AuthAttemptLogSessionLengthMinutes  string
+	AuthAttemptLogUploadRateThreshold   string
+	AuthAttemptLogDownloadRateThreshold string
+	AuthAttemptLogUploadQuota           string
+	AuthAttemptLogDownloadQuota         string
+	AuthAttemptLogCustomValue           string
 }{
-	AuthAttemptLogID:                "auth_attempt_log_id",
-	AuthAttemptLogClientType:        "auth_attempt_log_client_type",
-	AuthAttemptLogClientInterface:   "auth_attempt_log_client_interface",
-	AuthAttemptLogClientIP:          "auth_attempt_log_client_ip",
-	AuthAttemptLogClientMacAddress:  "auth_attempt_log_client_mac_address",
-	AuthAttemptLogClientGatewayName: "auth_attempt_log_client_gateway_name",
-	AuthAttemptLogClientURL:         "auth_attempt_log_client_url",
-	AuthAttemptLogClientHashID:      "auth_attempt_log_client_hash_id",
-	AuthAttemptLogOriginURL:         "auth_attempt_log_origin_url",
-	AuthAttemptLogThemeSpecPath:     "auth_attempt_log_theme_spec_path",
-	AuthAttemptLogOpenndsVersion:    "auth_attempt_log_opennds_version",
-	AuthAttemptLogGatewayID:         "auth_attempt_log_gateway_id",
+	AuthAttemptLogID:                    "auth_attempt_log_id",
+	AuthAttemptLogClientType:            "auth_attempt_log_client_type",
+	AuthAttemptLogClientInterface:       "auth_attempt_log_client_interface",
+	AuthAttemptLogClientIP:              "auth_attempt_log_client_ip",
+	AuthAttemptLogClientMacAddress:      "auth_attempt_log_client_mac_address",
+	AuthAttemptLogClientGatewayName:     "auth_attempt_log_client_gateway_name",
+	AuthAttemptLogClientURL:             "auth_attempt_log_client_url",
+	AuthAttemptLogClientHashID:          "auth_attempt_log_client_hash_id",
+	AuthAttemptLogOriginURL:             "auth_attempt_log_origin_url",
+	AuthAttemptLogThemeSpecPath:         "auth_attempt_log_theme_spec_path",
+	AuthAttemptLogOpenndsVersion:        "auth_attempt_log_opennds_version",
+	AuthAttemptLogRhid:                  "auth_attempt_log_rhid",
+	AuthAttemptLogSessionLengthMinutes:  "auth_attempt_log_session_length_minutes",
+	AuthAttemptLogUploadRateThreshold:   "auth_attempt_log_upload_rate_threshold",
+	AuthAttemptLogDownloadRateThreshold: "auth_attempt_log_download_rate_threshold",
+	AuthAttemptLogUploadQuota:           "auth_attempt_log_upload_quota",
+	AuthAttemptLogDownloadQuota:         "auth_attempt_log_download_quota",
+	AuthAttemptLogCustomValue:           "auth_attempt_log_custom_value",
 }
 
 var AuthAttemptLogTableColumns = struct {
-	AuthAttemptLogID                string
-	AuthAttemptLogClientType        string
-	AuthAttemptLogClientInterface   string
-	AuthAttemptLogClientIP          string
-	AuthAttemptLogClientMacAddress  string
-	AuthAttemptLogClientGatewayName string
-	AuthAttemptLogClientURL         string
-	AuthAttemptLogClientHashID      string
-	AuthAttemptLogOriginURL         string
-	AuthAttemptLogThemeSpecPath     string
-	AuthAttemptLogOpenndsVersion    string
-	AuthAttemptLogGatewayID         string
+	AuthAttemptLogID                    string
+	AuthAttemptLogClientType            string
+	AuthAttemptLogClientInterface       string
+	AuthAttemptLogClientIP              string
+	AuthAttemptLogClientMacAddress      string
+	AuthAttemptLogClientGatewayName     string
+	AuthAttemptLogClientURL             string
+	AuthAttemptLogClientHashID          string
+	AuthAttemptLogOriginURL             string
+	AuthAttemptLogThemeSpecPath         string
+	AuthAttemptLogOpenndsVersion        string
+	AuthAttemptLogRhid                  string
+	AuthAttemptLogSessionLengthMinutes  string
+	AuthAttemptLogUploadRateThreshold   string
+	AuthAttemptLogDownloadRateThreshold string
+	AuthAttemptLogUploadQuota           string
+	AuthAttemptLogDownloadQuota         string
+	AuthAttemptLogCustomValue           string
 }{
-	AuthAttemptLogID:                "auth_attempt_log.auth_attempt_log_id",
-	AuthAttemptLogClientType:        "auth_attempt_log.auth_attempt_log_client_type",
-	AuthAttemptLogClientInterface:   "auth_attempt_log.auth_attempt_log_client_interface",
-	AuthAttemptLogClientIP:          "auth_attempt_log.auth_attempt_log_client_ip",
-	AuthAttemptLogClientMacAddress:  "auth_attempt_log.auth_attempt_log_client_mac_address",
-	AuthAttemptLogClientGatewayName: "auth_attempt_log.auth_attempt_log_client_gateway_name",
-	AuthAttemptLogClientURL:         "auth_attempt_log.auth_attempt_log_client_url",
-	AuthAttemptLogClientHashID:      "auth_attempt_log.auth_attempt_log_client_hash_id",
-	AuthAttemptLogOriginURL:         "auth_attempt_log.auth_attempt_log_origin_url",
-	AuthAttemptLogThemeSpecPath:     "auth_attempt_log.auth_attempt_log_theme_spec_path",
-	AuthAttemptLogOpenndsVersion:    "auth_attempt_log.auth_attempt_log_opennds_version",
-	AuthAttemptLogGatewayID:         "auth_attempt_log.auth_attempt_log_gateway_id",
+	AuthAttemptLogID:                    "auth_attempt_log.auth_attempt_log_id",
+	AuthAttemptLogClientType:            "auth_attempt_log.auth_attempt_log_client_type",
+	AuthAttemptLogClientInterface:       "auth_attempt_log.auth_attempt_log_client_interface",
+	AuthAttemptLogClientIP:              "auth_attempt_log.auth_attempt_log_client_ip",
+	AuthAttemptLogClientMacAddress:      "auth_attempt_log.auth_attempt_log_client_mac_address",
+	AuthAttemptLogClientGatewayName:     "auth_attempt_log.auth_attempt_log_client_gateway_name",
+	AuthAttemptLogClientURL:             "auth_attempt_log.auth_attempt_log_client_url",
+	AuthAttemptLogClientHashID:          "auth_attempt_log.auth_attempt_log_client_hash_id",
+	AuthAttemptLogOriginURL:             "auth_attempt_log.auth_attempt_log_origin_url",
+	AuthAttemptLogThemeSpecPath:         "auth_attempt_log.auth_attempt_log_theme_spec_path",
+	AuthAttemptLogOpenndsVersion:        "auth_attempt_log.auth_attempt_log_opennds_version",
+	AuthAttemptLogRhid:                  "auth_attempt_log.auth_attempt_log_rhid",
+	AuthAttemptLogSessionLengthMinutes:  "auth_attempt_log.auth_attempt_log_session_length_minutes",
+	AuthAttemptLogUploadRateThreshold:   "auth_attempt_log.auth_attempt_log_upload_rate_threshold",
+	AuthAttemptLogDownloadRateThreshold: "auth_attempt_log.auth_attempt_log_download_rate_threshold",
+	AuthAttemptLogUploadQuota:           "auth_attempt_log.auth_attempt_log_upload_quota",
+	AuthAttemptLogDownloadQuota:         "auth_attempt_log.auth_attempt_log_download_quota",
+	AuthAttemptLogCustomValue:           "auth_attempt_log.auth_attempt_log_custom_value",
 }
 
 // Generated where
 
+type whereHelpernull_JSON struct{ field string }
+
+func (w whereHelpernull_JSON) EQ(x null.JSON) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, false, x)
+}
+func (w whereHelpernull_JSON) NEQ(x null.JSON) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, true, x)
+}
+func (w whereHelpernull_JSON) LT(x null.JSON) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpernull_JSON) LTE(x null.JSON) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpernull_JSON) GT(x null.JSON) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpernull_JSON) GTE(x null.JSON) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
+func (w whereHelpernull_JSON) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
+func (w whereHelpernull_JSON) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
+
 var AuthAttemptLogWhere = struct {
-	AuthAttemptLogID                whereHelperint64
-	AuthAttemptLogClientType        whereHelperstring
-	AuthAttemptLogClientInterface   whereHelperstring
-	AuthAttemptLogClientIP          whereHelperstring
-	AuthAttemptLogClientMacAddress  whereHelperstring
-	AuthAttemptLogClientGatewayName whereHelperstring
-	AuthAttemptLogClientURL         whereHelperstring
-	AuthAttemptLogClientHashID      whereHelperstring
-	AuthAttemptLogOriginURL         whereHelperstring
-	AuthAttemptLogThemeSpecPath     whereHelperstring
-	AuthAttemptLogOpenndsVersion    whereHelperstring
-	AuthAttemptLogGatewayID         whereHelperint64
+	AuthAttemptLogID                    whereHelperint64
+	AuthAttemptLogClientType            whereHelperstring
+	AuthAttemptLogClientInterface       whereHelperstring
+	AuthAttemptLogClientIP              whereHelperstring
+	AuthAttemptLogClientMacAddress      whereHelperstring
+	AuthAttemptLogClientGatewayName     whereHelperstring
+	AuthAttemptLogClientURL             whereHelperstring
+	AuthAttemptLogClientHashID          whereHelperstring
+	AuthAttemptLogOriginURL             whereHelperstring
+	AuthAttemptLogThemeSpecPath         whereHelperstring
+	AuthAttemptLogOpenndsVersion        whereHelperstring
+	AuthAttemptLogRhid                  whereHelperstring
+	AuthAttemptLogSessionLengthMinutes  whereHelperint64
+	AuthAttemptLogUploadRateThreshold   whereHelperint64
+	AuthAttemptLogDownloadRateThreshold whereHelperint64
+	AuthAttemptLogUploadQuota           whereHelperint64
+	AuthAttemptLogDownloadQuota         whereHelperint64
+	AuthAttemptLogCustomValue           whereHelpernull_JSON
 }{
-	AuthAttemptLogID:                whereHelperint64{field: "\"auth_attempt_log\".\"auth_attempt_log_id\""},
-	AuthAttemptLogClientType:        whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_client_type\""},
-	AuthAttemptLogClientInterface:   whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_client_interface\""},
-	AuthAttemptLogClientIP:          whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_client_ip\""},
-	AuthAttemptLogClientMacAddress:  whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_client_mac_address\""},
-	AuthAttemptLogClientGatewayName: whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_client_gateway_name\""},
-	AuthAttemptLogClientURL:         whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_client_url\""},
-	AuthAttemptLogClientHashID:      whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_client_hash_id\""},
-	AuthAttemptLogOriginURL:         whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_origin_url\""},
-	AuthAttemptLogThemeSpecPath:     whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_theme_spec_path\""},
-	AuthAttemptLogOpenndsVersion:    whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_opennds_version\""},
-	AuthAttemptLogGatewayID:         whereHelperint64{field: "\"auth_attempt_log\".\"auth_attempt_log_gateway_id\""},
+	AuthAttemptLogID:                    whereHelperint64{field: "\"auth_attempt_log\".\"auth_attempt_log_id\""},
+	AuthAttemptLogClientType:            whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_client_type\""},
+	AuthAttemptLogClientInterface:       whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_client_interface\""},
+	AuthAttemptLogClientIP:              whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_client_ip\""},
+	AuthAttemptLogClientMacAddress:      whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_client_mac_address\""},
+	AuthAttemptLogClientGatewayName:     whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_client_gateway_name\""},
+	AuthAttemptLogClientURL:             whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_client_url\""},
+	AuthAttemptLogClientHashID:          whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_client_hash_id\""},
+	AuthAttemptLogOriginURL:             whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_origin_url\""},
+	AuthAttemptLogThemeSpecPath:         whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_theme_spec_path\""},
+	AuthAttemptLogOpenndsVersion:        whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_opennds_version\""},
+	AuthAttemptLogRhid:                  whereHelperstring{field: "\"auth_attempt_log\".\"auth_attempt_log_rhid\""},
+	AuthAttemptLogSessionLengthMinutes:  whereHelperint64{field: "\"auth_attempt_log\".\"auth_attempt_log_session_length_minutes\""},
+	AuthAttemptLogUploadRateThreshold:   whereHelperint64{field: "\"auth_attempt_log\".\"auth_attempt_log_upload_rate_threshold\""},
+	AuthAttemptLogDownloadRateThreshold: whereHelperint64{field: "\"auth_attempt_log\".\"auth_attempt_log_download_rate_threshold\""},
+	AuthAttemptLogUploadQuota:           whereHelperint64{field: "\"auth_attempt_log\".\"auth_attempt_log_upload_quota\""},
+	AuthAttemptLogDownloadQuota:         whereHelperint64{field: "\"auth_attempt_log\".\"auth_attempt_log_download_quota\""},
+	AuthAttemptLogCustomValue:           whereHelpernull_JSON{field: "\"auth_attempt_log\".\"auth_attempt_log_custom_value\""},
 }
 
 // AuthAttemptLogRels is where relationship names are stored.
 var AuthAttemptLogRels = struct {
-	AuthAttemptLogGateway string
-}{
-	AuthAttemptLogGateway: "AuthAttemptLogGateway",
-}
+}{}
 
 // authAttemptLogR is where relationships are stored.
 type authAttemptLogR struct {
-	AuthAttemptLogGateway *Gateway `boil:"AuthAttemptLogGateway" json:"AuthAttemptLogGateway" toml:"AuthAttemptLogGateway" yaml:"AuthAttemptLogGateway"`
 }
 
 // NewStruct creates a new relationship struct
@@ -154,20 +223,13 @@ func (*authAttemptLogR) NewStruct() *authAttemptLogR {
 	return &authAttemptLogR{}
 }
 
-func (r *authAttemptLogR) GetAuthAttemptLogGateway() *Gateway {
-	if r == nil {
-		return nil
-	}
-	return r.AuthAttemptLogGateway
-}
-
 // authAttemptLogL is where Load methods for each relationship are stored.
 type authAttemptLogL struct{}
 
 var (
-	authAttemptLogAllColumns            = []string{"auth_attempt_log_id", "auth_attempt_log_client_type", "auth_attempt_log_client_interface", "auth_attempt_log_client_ip", "auth_attempt_log_client_mac_address", "auth_attempt_log_client_gateway_name", "auth_attempt_log_client_url", "auth_attempt_log_client_hash_id", "auth_attempt_log_origin_url", "auth_attempt_log_theme_spec_path", "auth_attempt_log_opennds_version", "auth_attempt_log_gateway_id"}
-	authAttemptLogColumnsWithoutDefault = []string{"auth_attempt_log_id", "auth_attempt_log_client_type", "auth_attempt_log_client_interface", "auth_attempt_log_client_ip", "auth_attempt_log_client_mac_address", "auth_attempt_log_client_gateway_name", "auth_attempt_log_client_url", "auth_attempt_log_client_hash_id", "auth_attempt_log_origin_url", "auth_attempt_log_theme_spec_path", "auth_attempt_log_opennds_version", "auth_attempt_log_gateway_id"}
-	authAttemptLogColumnsWithDefault    = []string{}
+	authAttemptLogAllColumns            = []string{"auth_attempt_log_id", "auth_attempt_log_client_type", "auth_attempt_log_client_interface", "auth_attempt_log_client_ip", "auth_attempt_log_client_mac_address", "auth_attempt_log_client_gateway_name", "auth_attempt_log_client_url", "auth_attempt_log_client_hash_id", "auth_attempt_log_origin_url", "auth_attempt_log_theme_spec_path", "auth_attempt_log_opennds_version", "auth_attempt_log_rhid", "auth_attempt_log_session_length_minutes", "auth_attempt_log_upload_rate_threshold", "auth_attempt_log_download_rate_threshold", "auth_attempt_log_upload_quota", "auth_attempt_log_download_quota", "auth_attempt_log_custom_value"}
+	authAttemptLogColumnsWithoutDefault = []string{"auth_attempt_log_id", "auth_attempt_log_client_type", "auth_attempt_log_client_interface", "auth_attempt_log_client_ip", "auth_attempt_log_client_mac_address", "auth_attempt_log_client_gateway_name", "auth_attempt_log_client_url", "auth_attempt_log_client_hash_id", "auth_attempt_log_origin_url", "auth_attempt_log_theme_spec_path", "auth_attempt_log_opennds_version", "auth_attempt_log_rhid", "auth_attempt_log_session_length_minutes", "auth_attempt_log_upload_rate_threshold", "auth_attempt_log_download_rate_threshold", "auth_attempt_log_upload_quota", "auth_attempt_log_download_quota"}
+	authAttemptLogColumnsWithDefault    = []string{"auth_attempt_log_custom_value"}
 	authAttemptLogPrimaryKeyColumns     = []string{"auth_attempt_log_id"}
 	authAttemptLogGeneratedColumns      = []string{}
 )
@@ -448,184 +510,6 @@ func (q authAttemptLogQuery) Exists(ctx context.Context, exec boil.ContextExecut
 	}
 
 	return count > 0, nil
-}
-
-// AuthAttemptLogGateway pointed to by the foreign key.
-func (o *AuthAttemptLog) AuthAttemptLogGateway(mods ...qm.QueryMod) gatewayQuery {
-	queryMods := []qm.QueryMod{
-		qm.Where("\"gateway_id\" = ?", o.AuthAttemptLogGatewayID),
-	}
-
-	queryMods = append(queryMods, mods...)
-
-	return Gateways(queryMods...)
-}
-
-// LoadAuthAttemptLogGateway allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for an N-1 relationship.
-func (authAttemptLogL) LoadAuthAttemptLogGateway(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAuthAttemptLog interface{}, mods queries.Applicator) error {
-	var slice []*AuthAttemptLog
-	var object *AuthAttemptLog
-
-	if singular {
-		var ok bool
-		object, ok = maybeAuthAttemptLog.(*AuthAttemptLog)
-		if !ok {
-			object = new(AuthAttemptLog)
-			ok = queries.SetFromEmbeddedStruct(&object, &maybeAuthAttemptLog)
-			if !ok {
-				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeAuthAttemptLog))
-			}
-		}
-	} else {
-		s, ok := maybeAuthAttemptLog.(*[]*AuthAttemptLog)
-		if ok {
-			slice = *s
-		} else {
-			ok = queries.SetFromEmbeddedStruct(&slice, maybeAuthAttemptLog)
-			if !ok {
-				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeAuthAttemptLog))
-			}
-		}
-	}
-
-	args := make([]interface{}, 0, 1)
-	if singular {
-		if object.R == nil {
-			object.R = &authAttemptLogR{}
-		}
-		args = append(args, object.AuthAttemptLogGatewayID)
-
-	} else {
-	Outer:
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &authAttemptLogR{}
-			}
-
-			for _, a := range args {
-				if a == obj.AuthAttemptLogGatewayID {
-					continue Outer
-				}
-			}
-
-			args = append(args, obj.AuthAttemptLogGatewayID)
-
-		}
-	}
-
-	if len(args) == 0 {
-		return nil
-	}
-
-	query := NewQuery(
-		qm.From(`gateway`),
-		qm.WhereIn(`gateway.gateway_id in ?`, args...),
-	)
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load Gateway")
-	}
-
-	var resultSlice []*Gateway
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice Gateway")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results of eager load for gateway")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for gateway")
-	}
-
-	if len(gatewayAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
-				return err
-			}
-		}
-	}
-
-	if len(resultSlice) == 0 {
-		return nil
-	}
-
-	if singular {
-		foreign := resultSlice[0]
-		object.R.AuthAttemptLogGateway = foreign
-		if foreign.R == nil {
-			foreign.R = &gatewayR{}
-		}
-		foreign.R.AuthAttemptLogGatewayAuthAttemptLogs = append(foreign.R.AuthAttemptLogGatewayAuthAttemptLogs, object)
-		return nil
-	}
-
-	for _, local := range slice {
-		for _, foreign := range resultSlice {
-			if local.AuthAttemptLogGatewayID == foreign.GatewayID {
-				local.R.AuthAttemptLogGateway = foreign
-				if foreign.R == nil {
-					foreign.R = &gatewayR{}
-				}
-				foreign.R.AuthAttemptLogGatewayAuthAttemptLogs = append(foreign.R.AuthAttemptLogGatewayAuthAttemptLogs, local)
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// SetAuthAttemptLogGateway of the authAttemptLog to the related item.
-// Sets o.R.AuthAttemptLogGateway to related.
-// Adds o to related.R.AuthAttemptLogGatewayAuthAttemptLogs.
-func (o *AuthAttemptLog) SetAuthAttemptLogGateway(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Gateway) error {
-	var err error
-	if insert {
-		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
-			return errors.Wrap(err, "failed to insert into foreign table")
-		}
-	}
-
-	updateQuery := fmt.Sprintf(
-		"UPDATE \"auth_attempt_log\" SET %s WHERE %s",
-		strmangle.SetParamNames("\"", "\"", 1, []string{"auth_attempt_log_gateway_id"}),
-		strmangle.WhereClause("\"", "\"", 2, authAttemptLogPrimaryKeyColumns),
-	)
-	values := []interface{}{related.GatewayID, o.AuthAttemptLogID}
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, updateQuery)
-		fmt.Fprintln(writer, values)
-	}
-	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	o.AuthAttemptLogGatewayID = related.GatewayID
-	if o.R == nil {
-		o.R = &authAttemptLogR{
-			AuthAttemptLogGateway: related,
-		}
-	} else {
-		o.R.AuthAttemptLogGateway = related
-	}
-
-	if related.R == nil {
-		related.R = &gatewayR{
-			AuthAttemptLogGatewayAuthAttemptLogs: AuthAttemptLogSlice{o},
-		}
-	} else {
-		related.R.AuthAttemptLogGatewayAuthAttemptLogs = append(related.R.AuthAttemptLogGatewayAuthAttemptLogs, o)
-	}
-
-	return nil
 }
 
 // AuthAttemptLogs retrieves all the records using an executor.
@@ -1177,12 +1061,12 @@ func BulkInsertAuthAttemptLog(unsavedRows []*AuthAttemptLog, exec boil.ContextEx
 		return nil
 	}
 
-	for _, authAttemptLogs := range chunkAuthAttemptLogs(unsavedRows, 5957) {
+	for _, authAttemptLogs := range chunkAuthAttemptLogs(unsavedRows, 3855) {
 		valueStrings := make([]string, 0, len(unsavedRows))
-		valueArgs := make([]interface{}, 0, len(unsavedRows)*11)
+		valueArgs := make([]interface{}, 0, len(unsavedRows)*17)
 
 		for _, authAttemptLog := range authAttemptLogs {
-			valueStrings = append(valueStrings, "(?,?,?,?,?,?,?,?,?,?,?)")
+			valueStrings = append(valueStrings, "(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
 
 			valueArgs = append(valueArgs, authAttemptLog.AuthAttemptLogClientType)
 			valueArgs = append(valueArgs, authAttemptLog.AuthAttemptLogClientInterface)
@@ -1194,7 +1078,13 @@ func BulkInsertAuthAttemptLog(unsavedRows []*AuthAttemptLog, exec boil.ContextEx
 			valueArgs = append(valueArgs, authAttemptLog.AuthAttemptLogOriginURL)
 			valueArgs = append(valueArgs, authAttemptLog.AuthAttemptLogThemeSpecPath)
 			valueArgs = append(valueArgs, authAttemptLog.AuthAttemptLogOpenndsVersion)
-			valueArgs = append(valueArgs, authAttemptLog.AuthAttemptLogGatewayID)
+			valueArgs = append(valueArgs, authAttemptLog.AuthAttemptLogRhid)
+			valueArgs = append(valueArgs, authAttemptLog.AuthAttemptLogSessionLengthMinutes)
+			valueArgs = append(valueArgs, authAttemptLog.AuthAttemptLogUploadRateThreshold)
+			valueArgs = append(valueArgs, authAttemptLog.AuthAttemptLogDownloadRateThreshold)
+			valueArgs = append(valueArgs, authAttemptLog.AuthAttemptLogUploadQuota)
+			valueArgs = append(valueArgs, authAttemptLog.AuthAttemptLogDownloadQuota)
+			valueArgs = append(valueArgs, authAttemptLog.AuthAttemptLogCustomValue)
 		}
 		stmt := fmt.Sprintf(
 			"INSERT INTO "+
@@ -1210,7 +1100,13 @@ func BulkInsertAuthAttemptLog(unsavedRows []*AuthAttemptLog, exec boil.ContextEx
 				AuthAttemptLogColumns.AuthAttemptLogOriginURL+", "+
 				AuthAttemptLogColumns.AuthAttemptLogThemeSpecPath+", "+
 				AuthAttemptLogColumns.AuthAttemptLogOpenndsVersion+", "+
-				AuthAttemptLogColumns.AuthAttemptLogGatewayID+
+				AuthAttemptLogColumns.AuthAttemptLogRhid+", "+
+				AuthAttemptLogColumns.AuthAttemptLogSessionLengthMinutes+", "+
+				AuthAttemptLogColumns.AuthAttemptLogUploadRateThreshold+", "+
+				AuthAttemptLogColumns.AuthAttemptLogDownloadRateThreshold+", "+
+				AuthAttemptLogColumns.AuthAttemptLogUploadQuota+", "+
+				AuthAttemptLogColumns.AuthAttemptLogDownloadQuota+", "+
+				AuthAttemptLogColumns.AuthAttemptLogCustomValue+
 				") VALUES %s",
 			strings.Join(valueStrings, ","))
 		if _, err := exec.Exec(stmt, valueArgs...); err != nil {

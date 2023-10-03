@@ -103,7 +103,7 @@ func TestAuthHandler_base_scenario(t *testing.T) {
 		expectedExpiration,
 	).SetVal("OK")
 
-	if assert.NoError(t, NewAuthHandler(encryptionKey, rCli)(c)) {
+	if assert.NoError(t, NewAuthHandler(encryptionKey, rCli, nil)(c)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
 	}
 

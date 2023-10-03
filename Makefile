@@ -27,6 +27,11 @@ update:
 	@go get -u all
 	go mod tidy
 
+.PHONY: generate
+generate:
+	@go install github.com/vektra/mockery/v2@v2.34.2
+	mockery
+
 .PHONY: models
 models:
 	@go install github.com/volatiletech/sqlboiler/v4@latest
