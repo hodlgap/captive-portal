@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	echo "github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
-	"github.com/redis/go-redis/v9"
+	redis "github.com/redis/go-redis/v9"
 )
 
 /* Send and/or clear the Auth List when requested by openNDS

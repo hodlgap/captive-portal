@@ -12,10 +12,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/redis/go-redis/v9"
-
-	"github.com/labstack/echo/v4"
+	echo "github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
+	redis "github.com/redis/go-redis/v9"
 )
 
 type RawAuthRequest struct {

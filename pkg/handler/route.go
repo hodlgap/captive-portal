@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"github.com/labstack/echo/v4"
-	"github.com/redis/go-redis/v9"
+	echo "github.com/labstack/echo/v4"
+	redis "github.com/redis/go-redis/v9"
 
 	"github.com/hodlgap/captive-portal/pkg/config"
 	"github.com/hodlgap/captive-portal/pkg/handler/captiveportal"

@@ -10,11 +10,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	redismock "github.com/go-redis/redismock/v9"
+	echo "github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/go-redis/redismock/v9"
 )
 
 // nolint:unused

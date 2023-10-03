@@ -8,15 +8,14 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/hodlgap/captive-portal/pkg"
-	"github.com/hodlgap/captive-portal/pkg/handler"
-
-	"github.com/pkg/errors"
-
-	"github.com/hodlgap/captive-portal/pkg/config"
-
 	"github.com/labstack/gommon/log"
+	"github.com/newrelic/go-agent/v3/integrations/nrredis-v9"
+	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
+
+	"github.com/hodlgap/captive-portal/pkg"
+	"github.com/hodlgap/captive-portal/pkg/config"
+	"github.com/hodlgap/captive-portal/pkg/handler"
 )
 
 const (
@@ -39,11 +38,13 @@ func main() {
 		log.Fatalf("%+v", errors.WithStack(err))
 	}
 
-	redisCli := redis.NewClient(&redis.Options{
+	redisOpt := &redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", c.Redis.Host, c.Redis.Port),
 		Password: c.Redis.Password, // no password set
 		DB:       c.Redis.DB,       // use default DB
-	})
+	}
+	redisCli := redis.NewClient(redisOpt)
+	redisCli.AddHook(nrredis.NewHook(redisOpt))
 
 	app = handler.SetRoute(c, app, redisCli)
 

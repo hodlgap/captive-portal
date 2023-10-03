@@ -7,6 +7,8 @@ require (
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/labstack/gommon v0.4.0
 	github.com/newrelic/go-agent/v3 v3.26.0
+	github.com/newrelic/go-agent/v3/integrations/nrecho-v4 v1.0.4
+	github.com/newrelic/go-agent/v3/integrations/nrredis-v9 v1.0.0
 	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/v9 v9.1.0
 	github.com/sirupsen/logrus v1.9.3

@@ -59,6 +59,12 @@ github.com/newrelic/go-agent/v3/internal/logger
 github.com/newrelic/go-agent/v3/internal/sysinfo
 github.com/newrelic/go-agent/v3/internal/utilization
 github.com/newrelic/go-agent/v3/newrelic
+# github.com/newrelic/go-agent/v3/integrations/nrecho-v4 v1.0.4
+## explicit; go 1.19
+github.com/newrelic/go-agent/v3/integrations/nrecho-v4
+# github.com/newrelic/go-agent/v3/integrations/nrredis-v9 v1.0.0
+## explicit; go 1.17
+github.com/newrelic/go-agent/v3/integrations/nrredis-v9
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
