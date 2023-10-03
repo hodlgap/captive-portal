@@ -14,8 +14,8 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"github.com/hodlgap/captive-portal/pkg"
+	"github.com/hodlgap/captive-portal/pkg/auth"
 	"github.com/hodlgap/captive-portal/pkg/config"
-	"github.com/hodlgap/captive-portal/pkg/handler"
 	"github.com/hodlgap/captive-portal/pkg/models"
 )
 
@@ -34,11 +34,6 @@ func main() {
 		log.Fatalf("%+v", errors.WithStack(err))
 	}
 
-	app, err := pkg.NewApp(c, nr)
-	if err != nil {
-		log.Fatalf("%+v", errors.WithStack(err))
-	}
-
 	redisOpt := &redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", c.Redis.Host, c.Redis.Port),
 		Password: c.Redis.Password, // no password set
@@ -47,17 +42,19 @@ func main() {
 	redisCli := redis.NewClient(redisOpt)
 	redisCli.AddHook(nrredis.NewHook(redisOpt))
 
-	db := models.MustGetDB(c.DB.Host, c.DB.User, c.DB.Password, c.DB.Name, c.DB.Port)
-	if err := db.Ping(); err != nil {
-		log.Fatalf("%+v", errors.WithStack(err))
+	db, err := models.NewDB(c.DB.Host, c.DB.User, c.DB.Password, c.DB.Name, c.DB.Port)
+	if err != nil {
+		log.Fatalf("%+v", err)
 	}
 
-	app = handler.SetRoute(c, app, redisCli, db)
+	authProvider := auth.NewProvider(redisCli)
+
+	app := pkg.NewApp(c, nr, authProvider, db)
 
 	// Start server
 	go func() {
 		if err := app.Start(fmt.Sprintf("%s:%d", c.App.Host, c.App.Port)); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			app.Logger.Fatalf("shutting down the server\n%+v", err)
+			app.Logger.Fatalf("shutting down the server\n%+v", errors.WithStack(err))
 		}
 	}()
 
@@ -68,6 +65,6 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(c.App.GracefulTimeoutSec)*time.Second)
 	defer cancel()
 	if err := app.Shutdown(ctx); err != nil {
-		app.Logger.Fatalf("%+v", err)
+		app.Logger.Fatalf("%+v", errors.WithStack(err))
 	}
 }

@@ -10,18 +10,19 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/hodlgap/captive-portal/pkg/auth"
-	"github.com/hodlgap/captive-portal/pkg/models"
-	"github.com/labstack/gommon/log"
-	"github.com/volatiletech/null/v8"
-	"github.com/volatiletech/sqlboiler/v4/boil"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
 	echo "github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 	"github.com/pkg/errors"
+	"github.com/volatiletech/null/v8"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+
+	"github.com/hodlgap/captive-portal/pkg/auth"
+	"github.com/hodlgap/captive-portal/pkg/models"
 )
 
 type RawAuthRequest struct {
@@ -140,7 +141,7 @@ func NewAuthHandler(encryptionKey string, authProvider auth.Provider, db *sql.DB
 			},
 		)
 
-		if err := authProvider.AddClient(c.Request().Context(), dr.GatewayName, rhid, p); err != nil {
+		if err := authProvider.AddPolicy(c.Request().Context(), dr.GatewayName, rhid, p); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", err))
 		}
 

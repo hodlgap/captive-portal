@@ -8,15 +8,16 @@ import (
 
 	echo "github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
-	redis "github.com/redis/go-redis/v9"
+
+	"github.com/hodlgap/captive-portal/pkg/auth"
 )
 
 /* Send and/or clear the Auth List when requested by openNDS
 When a client was verified, their parameters were added to the "auth list"
-The auth list is sent to openNDS when authmon requests it.
+The auth list is sent to openNDS when auth-mon requests it.
 
 auth_get:
-auth_get is sent by authmon or libopennds in a POST request and can have the following values:
+auth_get is sent by auth-mon or lib-opennds in a POST request and can have the following values:
 
 1. Value "list".
 	FAS sends the auth list and deletes each client entry currently on that list.
@@ -24,16 +25,16 @@ auth_get is sent by authmon or libopennds in a POST request and can have the fol
 2. Value "view".
 	FAS checks the received payload for an ack list of successfully authenticated clients from previous auth lists.
 	Clients on the auth list are only deleted if they are in a received ack list.
-	Authmon will have sent the ack list as acknowledgement of all clients that were successfully authenticated in the previous auth list.
-	Finally FAS replies by sending the next auth list.
-	"view" is the default method used by authmon.
+	Auth-mon will have sent the ack list as acknowledgement of all clients that were successfully authenticated in the previous auth list.
+	Finally, FAS replies by sending the next auth list.
+	"view" is the default method used by auth-mon.
 
 3. Value "clear".
-	This is a housekeeping function and is called by authmon on startup of openNDS.
-	The auth list is cleared as any entries held by this FAS at the time of openNDS startup will be stale.
+	This is a housekeeping function and is called by auth-mon on startup of openNDS.
+	The auth list is cleared as any entries held by these FAS at the time of openNDS startup will be stale.
 
 4. Value "deauthed".
-	FAS receives a payload containing notification of deauthentication of a client and the reason for that notification.
+	FAS receives a payload containing notification of de-authentication of a client and the reason for that notification.
 	FAS replies with an ack., confirming reception of the notification.
 
 5. Value "custom".
@@ -51,7 +52,7 @@ const (
 	AuthGetHandlerURL = "/fas-aes-https.php"
 )
 
-func NewAuthGetHandler(rCli *redis.Client) echo.HandlerFunc {
+func NewAuthGetHandler(authProvider auth.Provider) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var r AuthGetRequest
 		if err := c.Bind(&r); err != nil {
@@ -68,64 +69,71 @@ func NewAuthGetHandler(rCli *redis.Client) echo.HandlerFunc {
 		if r.AuthGet == "view" {
 			if r.Payload == "none" {
 				// Listing all auth clients
-				rhids, err := rCli.LRange(c.Request().Context(), r.GatewayHash, 0, -1).Result()
+				rhids, err := authProvider.PopAllClients(c.Request().Context(), r.GatewayHash)
 				if err != nil {
-					return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", errors.WithStack(err)))
+					return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", err))
 				}
 
-				if err := rCli.Del(c.Request().Context(), r.GatewayHash).Err(); err != nil {
-					return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", errors.WithStack(err)))
+				// Early return if no clients
+				if len(rhids) == 0 {
+					return c.String(http.StatusOK, "*")
 				}
 
-				clients := make([]string, len(rhids))
-				for i, rhid := range rhids {
-					result, err := rCli.Get(c.Request().Context(), fmt.Sprintf("%s/%s", r.GatewayHash, rhid)).Result()
-					if err != nil {
-						return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", errors.WithStack(err)))
-					}
-
-					clients[i] = strings.Trim(result, "")
+				policies, err := authProvider.ListPolicies(c.Request().Context(), r.GatewayHash, rhids...)
+				if err != nil {
+					return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", err))
 				}
 
-				base := "*"
-				if len(clients) > 0 {
-					base += " "
+				for i, policy := range policies {
+					policies[i] = strings.Trim(policy, "")
 				}
 
-				return c.String(http.StatusOK, base+strings.Join(clients, "\n"))
+				return c.String(http.StatusOK, "* "+strings.Join(policies, "\n"))
 			} else {
-				for _, hid := range strings.Split(r.Payload, "\n") {
-					hid = strings.TrimLeft(hid, "* ")
-					if hid == "" {
-						continue
-					}
-
-					// Use GetDel for ensuring the client is in the auth list
-					if err := rCli.GetDel(c.Request().Context(), fmt.Sprintf("%s/%s", r.GatewayHash, hid)).Err(); err != nil {
-						return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", errors.WithStack(err)))
-					}
+				if err := authProvider.DeletePolicies(c.Request().Context(), r.GatewayHash, decodeHIDs(r.Payload)...); err != nil {
+					return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", err))
 				}
 
 				return c.String(http.StatusOK, "ack")
 			}
 		} else if r.AuthGet == "clear" {
-			rhids, err := rCli.LRange(c.Request().Context(), r.GatewayHash, 0, -1).Result()
+			// Listing all auth clients
+			rhids, err := authProvider.PopAllClients(c.Request().Context(), r.GatewayHash)
 			if err != nil {
-				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", errors.WithStack(err)))
+				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", err))
 			}
 
-			if err := rCli.Del(c.Request().Context(), r.GatewayHash).Err(); err != nil {
-				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", errors.WithStack(err)))
+			// Early return if no clients
+			if len(rhids) == 0 {
+				return c.String(http.StatusOK, "*")
 			}
 
-			for _, rhid := range rhids {
-				if err := rCli.Del(c.Request().Context(), fmt.Sprintf("%s/%s", r.GatewayHash, rhid)).Err(); err != nil {
-					return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", errors.WithStack(err)))
-				}
+			if err := authProvider.DeletePolicies(c.Request().Context(), r.GatewayHash, rhids...); err != nil {
+				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", err))
 			}
+
+			return c.NoContent(http.StatusOK)
 		}
 
-		c.Logger().Errorf("unexpected request: %+v", r)
-		return c.JSON(http.StatusOK, r)
+		// TODO(@Kcrong): Implement other auth_get methods
+		msg := fmt.Sprintf("unexpected request: %+v", r)
+		c.Logger().Error(msg)
+		return echo.NewHTTPError(http.StatusInternalServerError, msg)
 	}
+}
+
+func decodeHIDs(payload string) []string {
+	rawHIDs := strings.Split(payload, "\n")
+
+	HIDs := make([]string, 0, len(rawHIDs))
+	for _, hid := range rawHIDs {
+		hid = strings.TrimLeft(hid, "* ")
+		if hid == "" {
+			continue
+		}
+
+		HIDs = append(HIDs, hid)
+	}
+
+	return HIDs
 }

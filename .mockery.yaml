@@ -1,4 +1,0 @@
-inpackage: True
-with-expecter: True
-testonly: True
-include-auto-generated: False

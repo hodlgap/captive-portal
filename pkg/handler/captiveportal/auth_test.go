@@ -5,6 +5,7 @@ import (
 	"crypto/cipher"
 	"encoding/base64"
 	"fmt"
+	"github.com/hodlgap/captive-portal/pkg/auth"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -103,7 +104,7 @@ func TestAuthHandler_base_scenario(t *testing.T) {
 		expectedExpiration,
 	).SetVal("OK")
 
-	if assert.NoError(t, NewAuthHandler(encryptionKey, rCli, nil)(c)) {
+	if assert.NoError(t, NewAuthHandler(encryptionKey, auth.NewProvider(rCli), nil)(c)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
 	}
 

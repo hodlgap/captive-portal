@@ -5,13 +5,12 @@ format:
 	@go install -v github.com/incu6us/goimports-reviser/v3@latest
 	goimports-reviser -rm-unused \
 		-company-prefixes 'github.com/hodlgap' \
-		-excludes 'pkg/models,vendor,db' \
+		-excludes 'db' \
 		-project-name 'github.com/hodlgap/captive-portal' \
 		-format \
 		./...
 	gofmt -s -w .
 	go mod tidy
-	go mod vendor
 
 .PHONY: lint
 lint:
@@ -29,8 +28,8 @@ update:
 
 .PHONY: generate
 generate:
-	@go install github.com/vektra/mockery/v2@v2.34.2
-	mockery
+	@go install go.uber.org/mock/mockgen@latest
+	go generate ./...
 
 .PHONY: models
 models:

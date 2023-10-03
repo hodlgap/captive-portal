@@ -19,11 +19,6 @@ type ClientPolicy struct {
 	Custom map[string]any // Custom values
 }
 
-func (c *ClientPolicy) toAuthAttemptLog() {
-	// TODO: implement
-	panic("not implemented")
-}
-
 // toOpenNDSFormat converts ClientPolicy to the format that is expected by opennds auth daemon ("authmon")
 func (c *ClientPolicy) toOpenNDSFormat() string {
 	custom := ""
