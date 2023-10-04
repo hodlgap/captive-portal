@@ -17,6 +17,8 @@ import (
 
 	echo "github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
+	"github.com/newrelic/go-agent/v3/integrations/nrecho-v4"
+	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/pkg/errors"
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -145,7 +147,7 @@ func NewAuthHandler(encryptionKey string, authProvider auth.Provider, db *sql.DB
 			return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("%+v", err))
 		}
 
-		if err := insertAuthAttemptLog(c.Request().Context(), db, *dr, *p); err != nil {
+		if err := insertAuthAttemptLog(newrelic.NewContext(c.Request().Context(), nrecho.FromContext(c)), db, *dr, *p); err != nil {
 			c.Logger().Errorf("%+v", errors.WithStack(err))
 		}
 

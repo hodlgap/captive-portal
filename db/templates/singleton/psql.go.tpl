@@ -5,7 +5,7 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-    _ "github.com/lib/pq"
+	_ "github.com/newrelic/go-agent/v3/integrations/nrpq"
 )
 
 const (
