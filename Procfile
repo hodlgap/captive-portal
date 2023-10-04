@@ -1,1 +1,1 @@
-web: APP_PORT=$(PORT) bin/cmd
+web: APP_PORT=$PORT bin/cmd
