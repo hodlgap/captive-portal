@@ -10,7 +10,9 @@
 
 # next.js
 /.next/
-/out/
+
+# out directory should be included for serving static files from Golang backend.
+#/out/
 
 # production
 /build
