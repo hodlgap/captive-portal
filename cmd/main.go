@@ -19,12 +19,8 @@ import (
 	"github.com/hodlgap/captive-portal/pkg/models"
 )
 
-const (
-	configFilepath = "./config.yml"
-)
-
 func main() {
-	c, err := config.Parse(configFilepath)
+	c, err := config.FromEnv()
 	if err != nil {
 		log.Fatalf("%+v", errors.WithStack(err))
 	}
@@ -35,9 +31,20 @@ func main() {
 	}
 
 	redisOpt := &redis.Options{
-		Addr:     fmt.Sprintf("%s:%d", c.Redis.Host, c.Redis.Port),
-		Password: c.Redis.Password, // no password set
-		DB:       c.Redis.DB,       // use default DB
+		Addr:                  fmt.Sprintf("%s:%d", c.Redis.Host, c.Redis.Port),
+		Password:              c.Redis.Password, // no password set
+		DB:                    c.Redis.DB,       // use default DB
+		MaxRetries:            5,
+		MinRetryBackoff:       3,
+		MaxRetryBackoff:       7,
+		DialTimeout:           5 * time.Second,
+		ReadTimeout:           3 * time.Second,
+		WriteTimeout:          3 * time.Second,
+		ContextTimeoutEnabled: true,
+		MinIdleConns:          3,
+		MaxIdleConns:          5,
+		ConnMaxIdleTime:       30 * time.Minute,
+		ConnMaxLifetime:       0,
 	}
 	redisCli := redis.NewClient(redisOpt)
 	redisCli.AddHook(nrredis.NewHook(redisOpt))

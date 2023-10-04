@@ -21,6 +21,4 @@
 go.work
 
 .idea/
-config.yml
-serve/*
-!serve/fas-aes-https.php
+config.*.env

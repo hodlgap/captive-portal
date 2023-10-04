@@ -3,6 +3,7 @@ module github.com/hodlgap/captive-portal
 go 1.21
 
 require (
+	github.com/caarlos0/env/v9 v9.0.0
 	github.com/go-redis/redismock/v9 v9.0.3
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/labstack/gommon v0.4.0
@@ -18,7 +19,6 @@ require (
 	github.com/volatiletech/sqlboiler/v4 v4.15.0
 	github.com/volatiletech/strmangle v0.0.5
 	go.uber.org/mock v0.3.0
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -49,4 +49,5 @@ require (
 	google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f // indirect
 	google.golang.org/grpc v1.54.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

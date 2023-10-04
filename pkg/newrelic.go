@@ -8,7 +8,7 @@ import (
 )
 
 func NewNewrelic(c config.Config) (*newrelic.Application, error) {
-	if c.App.ENV != config.EnvProd {
+	if c.App.Env != config.AppEnvPROD {
 		return nil, nil
 	}
 
