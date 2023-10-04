@@ -49,7 +49,7 @@ func main() {
 	redisCli := redis.NewClient(redisOpt)
 	redisCli.AddHook(nrredis.NewHook(redisOpt))
 
-	db, err := models.NewDB(c.DB.Host, c.DB.User, c.DB.Password, c.DB.Name, c.DB.Port)
+	db, err := models.NewDB(c.DB.Host, c.DB.User, c.DB.Password, c.DB.Name, c.DB.Port, c.DB.SslMode)
 	if err != nil {
 		log.Fatalf("%+v", err)
 	}

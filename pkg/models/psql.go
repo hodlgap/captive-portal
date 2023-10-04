@@ -18,9 +18,9 @@ const (
 	accountBulkInsertCount = 3000
 )
 
-func NewDB(host, user, pass, dbName string, port int) (*sql.DB, error) {
+func NewDB(host, user, pass, dbName string, port int, sslmode string) (*sql.DB, error) {
 	db, err := sql.Open("postgres", fmt.Sprintf(
-		"user=%s password=%s host=%s port=%d dbname=%s sslmode=disable", user, pass, host, port, dbName,
+		"user=%s password=%s host=%s port=%d dbname=%s sslmode=%s", user, pass, host, port, dbName, sslmode,
 	))
 	if err != nil {
 		return nil, errors.WithStack(err)

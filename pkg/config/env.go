@@ -55,6 +55,7 @@ type DB struct {
 	User     string `env:"USER"`
 	Password string `env:"PASSWORD"`
 	Name     string `env:"NAME"`
+	SslMode  string `env:"SSL_MODE"`
 }
 
 type App struct {
