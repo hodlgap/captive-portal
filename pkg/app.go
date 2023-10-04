@@ -17,6 +17,7 @@ func NewApp(c config.Config, nr *newrelic.Application, authProvider auth.Provide
 	app := echo.New()
 	app.Logger.SetLevel(c.App.LogLevel.ToLevel())
 
+	app.Use(middleware.HTTPSRedirect())
 	app.Use(middleware.Logger())
 	app.Use(middleware.Recover())
 	app.Use(nrecho.Middleware(nr))
