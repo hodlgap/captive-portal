@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
 )
@@ -29,16 +30,24 @@ func toClientKey(gatewayHash, rhid string) string {
 }
 
 func (p *provider) PopAllClients(ctx context.Context, gatewayHash string) ([]string, error) {
-	rhids, err := p.ListClients(ctx, gatewayHash)
+	return popAllClients(newrelic.NewContext(ctx, newrelic.FromContext(ctx)), p.redisCli, gatewayHash)
+}
+
+func popAllClients(ctx context.Context, redisCli *redis.Client, gatewayHash string) ([]string, error) {
+	rhids, err := listClients(ctx, redisCli, gatewayHash)
 	if err != nil {
 		return nil, err
 	}
 
-	return rhids, p.DeleteGateway(ctx, gatewayHash)
+	return rhids, deleteGateway(ctx, redisCli, gatewayHash)
 }
 
 func (p *provider) ListClients(ctx context.Context, gatewayHash string) ([]string, error) {
-	rhids, err := p.redisCli.LRange(ctx, gatewayHash, 0, -1).Result()
+	return listClients(newrelic.NewContext(ctx, newrelic.FromContext(ctx)), p.redisCli, gatewayHash)
+}
+
+func listClients(ctx context.Context, redisCli *redis.Client, gatewayHash string) ([]string, error) {
+	rhids, err := redisCli.LRange(ctx, gatewayHash, 0, -1).Result()
 	if err != nil && !errors.Is(err, redis.Nil) {
 		return nil, errors.WithStack(err)
 	}
@@ -47,14 +56,26 @@ func (p *provider) ListClients(ctx context.Context, gatewayHash string) ([]strin
 }
 
 func (p *provider) AddPolicy(ctx context.Context, gatewayHash, rhid string, policy *ClientPolicy) error {
-	if err := p.redisCli.LPush(ctx, gatewayHash, rhid).Err(); err != nil {
+	return addPolicy(newrelic.NewContext(ctx, newrelic.FromContext(ctx)), p.redisCli, gatewayHash, rhid, policy)
+}
+
+func addPolicy(ctx context.Context, redisCli *redis.Client, gatewayHash, rhid string, policy *ClientPolicy) error {
+	if err := redisCli.LPush(ctx, gatewayHash, rhid).Err(); err != nil {
 		return errors.WithStack(err)
 	}
 
-	return errors.WithStack(p.redisCli.Set(ctx, toClientKey(gatewayHash, rhid), policy.toOpenNDSFormat(), 0).Err())
+	return errors.WithStack(redisCli.Set(ctx, toClientKey(gatewayHash, rhid), policy.toOpenNDSFormat(), 0).Err())
 }
 
 func (p *provider) DeletePolicies(ctx context.Context, gatewayHash string, rhids ...string) error {
+	if len(rhids) == 0 {
+		return nil
+	}
+
+	return deletePolicies(newrelic.NewContext(ctx, newrelic.FromContext(ctx)), p.redisCli, gatewayHash, rhids...)
+}
+
+func deletePolicies(ctx context.Context, redisCli *redis.Client, gatewayHash string, rhids ...string) error {
 	if len(rhids) == 0 {
 		return nil
 	}
@@ -63,7 +84,7 @@ func (p *provider) DeletePolicies(ctx context.Context, gatewayHash string, rhids
 		rhids[i] = toClientKey(gatewayHash, rhid)
 	}
 
-	result, err := p.redisCli.Del(ctx, rhids...).Result()
+	result, err := redisCli.Del(ctx, rhids...).Result()
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -75,10 +96,22 @@ func (p *provider) DeletePolicies(ctx context.Context, gatewayHash string, rhids
 }
 
 func (p *provider) DeleteGateway(ctx context.Context, gatewayHash string) error {
-	return errors.WithStack(p.redisCli.Del(ctx, gatewayHash).Err())
+	return deleteGateway(newrelic.NewContext(ctx, newrelic.FromContext(ctx)), p.redisCli, gatewayHash)
+}
+
+func deleteGateway(ctx context.Context, redisCli *redis.Client, gatewayHash string) error {
+	return errors.WithStack(redisCli.Del(ctx, gatewayHash).Err())
 }
 
 func (p *provider) ListPolicies(ctx context.Context, gatewayHash string, rhids ...string) ([]string, error) {
+	if len(rhids) == 0 {
+		return nil, nil
+	}
+
+	return listPolicies(newrelic.NewContext(ctx, newrelic.FromContext(ctx)), p.redisCli, gatewayHash, rhids...)
+}
+
+func listPolicies(ctx context.Context, redisCli *redis.Client, gatewayHash string, rhids ...string) ([]string, error) {
 	if len(rhids) == 0 {
 		return nil, nil
 	}
@@ -87,7 +120,7 @@ func (p *provider) ListPolicies(ctx context.Context, gatewayHash string, rhids .
 		rhids[i] = toClientKey(gatewayHash, rhid)
 	}
 
-	policies, err := p.redisCli.MGet(ctx, rhids...).Result()
+	policies, err := redisCli.MGet(ctx, rhids...).Result()
 	if err != nil && !errors.Is(err, redis.Nil) {
 		return nil, errors.WithStack(err)
 	}
