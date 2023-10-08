@@ -5,12 +5,11 @@ package models
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	_ "github.com/lib/pq"
+	_ "github.com/newrelic/go-agent/v3/integrations/nrpq"
 )
 
 const (
@@ -18,10 +17,8 @@ const (
 	accountBulkInsertCount = 3000
 )
 
-func NewDB(host, user, pass, dbName string, port int, sslmode string) (*sql.DB, error) {
-	db, err := sql.Open("postgres", fmt.Sprintf(
-		"user=%s password=%s host=%s port=%d dbname=%s sslmode=%s", user, pass, host, port, dbName, sslmode,
-	))
+func NewDB(url string) (*sql.DB, error) {
+	db, err := sql.Open("postgres", url)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

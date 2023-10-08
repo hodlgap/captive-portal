@@ -33,7 +33,7 @@ func main() {
 	redisOpt := &redis.Options{
 		Addr:                  fmt.Sprintf("%s:%d", c.Redis.Host, c.Redis.Port),
 		Password:              c.Redis.Password, // no password set
-		DB:                    c.Redis.DB,       // use default DB
+		DB:                    c.Redis.DB,       // use default Database
 		MaxRetries:            5,
 		MinRetryBackoff:       3,
 		MaxRetryBackoff:       7,
@@ -49,7 +49,7 @@ func main() {
 	redisCli := redis.NewClient(redisOpt)
 	redisCli.AddHook(nrredis.NewHook(redisOpt))
 
-	db, err := models.NewDB(c.DB.Host, c.DB.User, c.DB.Password, c.DB.Name, c.DB.Port, c.DB.SslMode)
+	db, err := models.NewDB(c.Database.URL)
 	if err != nil {
 		log.Fatalf("%+v", err)
 	}

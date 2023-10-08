@@ -46,16 +46,11 @@ type Redis struct {
 	Host     string `env:"HOST"`
 	Port     int    `env:"PORT"`
 	Password string `env:"PASSWORD"`
-	DB       int    `env:"DB"`
+	DB       int    `env:"Database"`
 }
 
-type DB struct {
-	Host     string `env:"HOST"`
-	Port     int    `env:"PORT"`
-	User     string `env:"USER"`
-	Password string `env:"PASSWORD"`
-	Name     string `env:"NAME"`
-	SslMode  string `env:"SSL_MODE"`
+type Database struct {
+	URL string `env:"URL"`
 }
 
 type App struct {
@@ -72,7 +67,7 @@ type Config struct {
 	Newrelic `envPrefix:"NEWRELIC_"`
 	Openwrt  `envPrefix:"OPENWRT_"`
 	Redis    `envPrefix:"REDIS_"`
-	DB       `envPrefix:"DB_"`
+	Database `envPrefix:"DATABASE_"`
 }
 
 // FromEnv parses env to Config

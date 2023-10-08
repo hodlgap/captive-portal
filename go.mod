@@ -7,9 +7,9 @@ require (
 	github.com/go-redis/redismock/v9 v9.0.3
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/labstack/gommon v0.4.0
-	github.com/lib/pq v1.10.6
 	github.com/newrelic/go-agent/v3 v3.26.0
 	github.com/newrelic/go-agent/v3/integrations/nrecho-v4 v1.0.4
+	github.com/newrelic/go-agent/v3/integrations/nrpq v1.1.1
 	github.com/newrelic/go-agent/v3/integrations/nrredis-v9 v1.0.0
 	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/v9 v9.1.0
@@ -31,6 +31,7 @@ require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/klauspost/compress v1.16.3 // indirect
+	github.com/lib/pq v1.10.6 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
